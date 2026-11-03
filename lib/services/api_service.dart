@@ -4,8 +4,10 @@ import 'package:http/http.dart' as http;
 import '../models/deeba_models.dart';
 
 class ApiService {
-  static const String defaultBaseUrl = 'http://localhost:8080/api/v1';
+  static const String defaultLiveCloudUrl = 'https://deepmatchbox.onrender.com/api/v1';
+  static const String defaultBaseUrl = 'https://deepmatchbox.onrender.com/api/v1';
   static const String defaultLanBaseUrl = 'http://192.168.1.170:8080/api/v1';
+  static const String defaultLocalhostUrl = 'http://localhost:8080/api/v1';
   static const String defaultEmulatorBaseUrl = 'http://10.0.2.2:8080/api/v1';
 
   String baseUrl;
@@ -28,7 +30,7 @@ class ApiService {
     try {
       final res = await http
           .get(Uri.parse('$baseUrl/health'))
-          .timeout(const Duration(seconds: 4));
+          .timeout(const Duration(seconds: 15));
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
         return data['status'] == 'UP' && data['databaseConnected'] == true;

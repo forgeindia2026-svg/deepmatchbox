@@ -53,11 +53,22 @@ void showServerConfigDialog(BuildContext context, DeebaStore store) {
                   runSpacing: 8,
                   children: [
                     ActionChip(
+                      avatar: const Icon(Icons.cloud_done_rounded, size: 14, color: Colors.green),
+                      label: const Text('Cloud Live (Render)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                      backgroundColor: Colors.green.shade50,
+                      onPressed: () {
+                        setDialogState(() {
+                          urlCtrl.text = ApiService.defaultLiveCloudUrl;
+                          testResultMsg = null;
+                        });
+                      },
+                    ),
+                    ActionChip(
                       avatar: const Icon(Icons.laptop_chromebook_rounded, size: 14),
                       label: const Text('PC Localhost'),
                       onPressed: () {
                         setDialogState(() {
-                          urlCtrl.text = ApiService.defaultBaseUrl;
+                          urlCtrl.text = ApiService.defaultLocalhostUrl;
                           testResultMsg = null;
                         });
                       },
@@ -91,7 +102,7 @@ void showServerConfigDialog(BuildContext context, DeebaStore store) {
                   controller: urlCtrl,
                   decoration: InputDecoration(
                     labelText: 'API Base URL',
-                    hintText: 'http://192.168.1.170:8080/api/v1',
+                    hintText: 'https://deepmatchbox.onrender.com/api/v1',
                     prefixIcon: const Icon(Icons.link_rounded),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
