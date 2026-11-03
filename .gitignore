@@ -48,4 +48,5 @@ app.*.map.json
 backend/spring_boot_api/target/
 database/data/
 *.lock
+*.apk
 
