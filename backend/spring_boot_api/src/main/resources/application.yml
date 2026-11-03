@@ -1,0 +1,9 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: deeba-match-house-api
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb+srv://deepmatchbox:9EVMqiIB5E8VkZkZ@cluster0.zpi9h8q.mongodb.net/deeba_match_house?retryWrites=true&w=majority&appName=Cluster0}
