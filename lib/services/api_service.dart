@@ -641,11 +641,13 @@ class ApiService {
   // 14. AUTHENTICATION & STAFF USER ACCOUNTS
   Future<Map<String, dynamic>> login(String username, String password) async {
     try {
-      final res = await http.post(
-        Uri.parse('$baseUrl/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'username': username, 'password': password}),
-      );
+      final res = await http
+          .post(
+            Uri.parse('$baseUrl/auth/login'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'username': username, 'password': password}),
+          )
+          .timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) {
         return jsonDecode(res.body);
       }

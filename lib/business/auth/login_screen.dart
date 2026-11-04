@@ -499,13 +499,27 @@ class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
                             ),
                             onPressed: _isLoading ? null : _attemptLogin,
                             child: _isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
+                                ? const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        height: 18,
+                                        width: 18,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                      SizedBox(width: 10),
+                                      Text(
+                                        'Logging in...',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 14,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
                                   )
                                 : Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -524,6 +538,18 @@ class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
                                   ),
                           ),
                         ),
+                        if (_isLoading) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            'Connecting to Cloud API... Please wait a few seconds.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              color: Colors.grey.shade600,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 18),
 
                         // Quick 1-Click Fill Helpers (for easy testing)
