@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../models/deeba_models.dart';
-import '../../shared/widgets/server_config_dialog.dart';
 import '../../state/deeba_store.dart';
 import '../../services/printing_service.dart';
 import 'staff_accounts_view.dart';
@@ -123,82 +122,102 @@ class _AdminStaffPortalState extends State<AdminStaffPortal> {
           ],
         ),
         actions: [
-          // Live API / MongoDB Connection Indicator
+          // Cloud Status Indicator (Subtle & Professional, No Technical Jargon)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () async { if (!widget.store.isApiConnected) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reconnecting to Render Cloud API...'), duration: Duration(seconds: 2))); await widget.store.loadLiveFromBackend(); if (widget.store.isApiConnected) return; } showServerConfigDialog(context, widget.store); },
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
-                decoration: BoxDecoration(
-                  color: widget.store.isApiConnected
-                      ? const Color(0xFF065F46)
-                      : const Color(0xFF991B1B),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white24),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      widget.store.isApiConnected
-                          ? Icons.cloud_done_rounded
-                          : Icons.cloud_off_rounded,
-                      size: 13,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      widget.store.isApiConnected ? 'Live MongoDB' : 'Offline',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
+            child: Tooltip(
+              message: widget.store.isApiConnected
+                  ? 'All factory records synced to Cloud'
+                  : 'Saved locally on device (Auto-syncs when online)',
+              child: InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () async {
+                  if (!widget.store.isApiConnected) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Checking cloud synchronization...'),
+                        duration: Duration(seconds: 2),
                       ),
+                    );
+                    await widget.store.loadLiveFromBackend();
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: widget.store.isApiConnected
+                        ? const Color(0xFF065F46)
+                        : const Color(0xFF334155),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: widget.store.isApiConnected
+                          ? const Color(0xFF34D399).withAlpha(80)
+                          : Colors.white24,
                     ),
-                  ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        widget.store.isApiConnected
+                            ? Icons.cloud_done_rounded
+                            : Icons.cloud_queue_rounded,
+                        size: 14,
+                        color: widget.store.isApiConnected
+                            ? const Color(0xFF6EE7B7)
+                            : Colors.white70,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        widget.store.isApiConnected ? 'Cloud Synced' : 'Saved Locally',
+                        style: TextStyle(
+                          color: widget.store.isApiConnected
+                              ? const Color(0xFFD1FAE5)
+                              : Colors.white70,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
           if (isCompactMobile) ...[
             PopupMenuButton<String>(
-              tooltip: 'More Options',
+              tooltip: 'Account Menu',
               icon: const Icon(Icons.more_vert_rounded,
                   color: Colors.white, size: 22),
               color: const Color(0xFF1E293B),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
               onSelected: (val) {
-                if (val == 'website') {
-                  widget.store.switchRole(UserRole.customer);
-                } else if (val == 'password') {
+                if (val == 'password') {
                   showChangePasswordDialog(context, widget.store);
                 } else if (val == 'logout') {
                   widget.onSwitchRoleModal();
                 }
               },
               itemBuilder: (ctx) => [
-                const PopupMenuItem(
-                  value: 'website',
-                  child: Row(
-                    children: [
-                      Icon(Icons.public_rounded,
-                          color: Color(0xFFFCD34D), size: 18),
-                      SizedBox(width: 10),
-                      Text('Customer Website',
-                          style: TextStyle(color: Colors.white, fontSize: 13)),
-                    ],
+                PopupMenuItem(
+                  enabled: false,
+                  child: Text(
+                    widget.store.loggedInUserName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                   ),
                 ),
+                const PopupMenuDivider(height: 1),
                 const PopupMenuItem(
                   value: 'password',
                   child: Row(
                     children: [
-                      Icon(Icons.key_rounded,
-                          color: Color(0xFFFDE047), size: 18),
+                      Icon(Icons.lock_reset_rounded,
+                          color: Color(0xFF38BDF8), size: 18),
                       SizedBox(width: 10),
                       Text('Change Password',
                           style: TextStyle(color: Colors.white, fontSize: 13)),
@@ -206,15 +225,15 @@ class _AdminStaffPortalState extends State<AdminStaffPortal> {
                   ),
                 ),
                 const PopupMenuDivider(height: 1),
-                PopupMenuItem(
+                const PopupMenuItem(
                   value: 'logout',
                   child: Row(
                     children: [
-                      const Icon(Icons.logout_rounded,
+                      Icon(Icons.logout_rounded,
                           color: Colors.redAccent, size: 18),
-                      const SizedBox(width: 10),
-                      Text('Logout (${widget.store.loggedInUserName})',
-                          style: const TextStyle(
+                      SizedBox(width: 10),
+                      Text('Logout',
+                          style: TextStyle(
                               color: Colors.redAccent,
                               fontSize: 13,
                               fontWeight: FontWeight.bold)),
@@ -225,49 +244,130 @@ class _AdminStaffPortalState extends State<AdminStaffPortal> {
             ),
             const SizedBox(width: 4),
           ] else ...[
-            TextButton.icon(
-              style:
-                  TextButton.styleFrom(foregroundColor: Colors.amber.shade300),
-              onPressed: () => widget.store.switchRole(UserRole.customer),
-              icon: const Icon(Icons.public_rounded, size: 18),
-              label: const Text('Customer Website'),
-            ),
-            const SizedBox(width: 6),
-            IconButton(
-              tooltip: 'Change Password',
-              onPressed: () => showChangePasswordDialog(context, widget.store),
-              icon: const Icon(Icons.key_rounded,
-                  color: Color(0xFFFDE047), size: 19),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.white30),
+            PopupMenuButton<String>(
+              tooltip: 'Account Menu',
+              offset: const Offset(0, 42),
+              color: const Color(0xFF1E293B),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              onSelected: (val) {
+                if (val == 'password') {
+                  showChangePasswordDialog(context, widget.store);
+                } else if (val == 'switch_role') {
+                  widget.onSwitchRoleModal();
+                } else if (val == 'logout') {
+                  widget.store.logout();
+                }
+              },
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(20),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white24),
                 ),
-                onPressed: widget.onSwitchRoleModal,
-                icon: const Icon(Icons.person_rounded, size: 18),
-                label: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 160),
-                  child: Text(
-                    widget.store.loggedInUserName,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircleAvatar(
+                      radius: 12,
+                      backgroundColor: const Color(0xFFD97706),
+                      child: Text(
+                        widget.store.loggedInUserName.isNotEmpty
+                            ? widget.store.loggedInUserName[0].toUpperCase()
+                            : 'U',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 150),
+                      child: Text(
+                        widget.store.loggedInUserName,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.arrow_drop_down_rounded,
+                        color: Colors.white70, size: 20),
+                  ],
                 ),
               ),
+              itemBuilder: (ctx) => [
+                PopupMenuItem(
+                  enabled: false,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.store.loggedInUserName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        widget.store.currentRole == UserRole.admin
+                            ? 'Factory Owner / Admin'
+                            : 'Factory Supervisor',
+                        style: TextStyle(
+                          color: Colors.white.withAlpha(160),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(height: 1),
+                const PopupMenuItem(
+                  value: 'password',
+                  child: Row(
+                    children: [
+                      Icon(Icons.lock_reset_rounded,
+                          color: Color(0xFF38BDF8), size: 18),
+                      SizedBox(width: 10),
+                      Text('Change Password',
+                          style: TextStyle(color: Colors.white, fontSize: 13)),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(height: 1),
+                const PopupMenuItem(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout_rounded,
+                          color: Colors.redAccent, size: 18),
+                      SizedBox(width: 10),
+                      Text('Logout',
+                          style: TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ],
             ),
             Padding(
-              padding: const EdgeInsets.only(right: 14),
-              child: FilledButton.tonalIcon(
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.red.shade900.withAlpha(102),
-                  foregroundColor: Colors.red.shade200,
-                  side: BorderSide(color: Colors.red.shade400.withAlpha(128)),
-                ),
+              padding: const EdgeInsets.only(right: 12),
+              child: IconButton(
+                tooltip: 'Logout',
+                icon: const Icon(Icons.logout_rounded,
+                    color: Colors.redAccent, size: 20),
                 onPressed: () => widget.store.logout(),
-                icon: const Icon(Icons.logout_rounded, size: 16),
-                label: const Text('Logout'),
               ),
             ),
           ],
@@ -2057,7 +2157,7 @@ class _OnlineOrdersAdminViewState extends State<_OnlineOrdersAdminView> {
                       ),
                       const SizedBox(height: 6),
                       const Text(
-                        'Orders placed by customers on the public store will show here live.\nAll order updates sync in real time with MongoDB.',
+                        'Orders placed by customers on the public store will show here live.\nAll order updates sync in real time with cloud records.',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 13, color: Colors.black54),
                       ),
@@ -3363,7 +3463,7 @@ class _PurchasesManagementViewState extends State<_PurchasesManagementView> {
                       ),
                       const SizedBox(height: 6),
                       const Text(
-                        'Use the form above to record inward raw material bills.\nNew entries are saved directly to live MongoDB.',
+                        'Use the form above to record inward raw material bills.\nNew entries are saved directly to factory records.',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 13, color: Colors.black54),
                       ),
@@ -4960,7 +5060,7 @@ class _SalesManagementViewState extends State<_SalesManagementView> {
                       ),
                       const SizedBox(height: 6),
                       const Text(
-                        'Click "Record Sale" above to log wholesale agent or retail store bills.\nAll entries sync in real time with MongoDB.',
+                        'Click "Record Sale" above to log wholesale agent or retail store bills.\nAll entries sync in real time with factory records.',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 13, color: Colors.black54),
                       ),
@@ -5297,9 +5397,9 @@ class _WorkersAttendanceSalaryViewState
       builder: (ctx) => AlertDialog(
         title: const Text('Factory Workers - Database Options'),
         content: const Text(
-          'Choose an action for MongoDB Workers collection:\n\n'
+          'Choose an action for Factory Workers list:\n\n'
           '1. "Reset Paid Salaries to Rs. 0": Keeps all workers and resets their paid salary balances to Rs. 0.\n\n'
-          '2. "Clear All Workers (Fresh Start)": Completely deletes all test workers from MongoDB so you can add real factory staff members from scratch.',
+          '2. "Clear All Workers (Fresh Start)": Completely deletes all test workers from the system so you can add real factory staff members from scratch.',
         ),
         actions: [
           TextButton(
@@ -5329,7 +5429,7 @@ class _WorkersAttendanceSalaryViewState
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(
-                      'All test workers removed from MongoDB! Ready for fresh staff entry.',
+                      'All test workers removed! Ready for fresh staff entry.',
                     ),
                   ),
                 );
@@ -6676,7 +6776,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
             const SizedBox(width: 8),
             Text(
               ok
-                  ? 'Daily Factory Sheet saved live to MongoDB!'
+                  ? 'Daily Factory Sheet saved successfully to Factory Records!'
                   : 'Saved locally in memory.',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
@@ -6806,7 +6906,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                                       strokeWidth: 2, color: Colors.white),
                                 )
                               : const Icon(Icons.save_rounded, size: 18),
-                          label: Text(_isSaving ? 'Saving...' : 'Save to MongoDB'),
+                          label: Text(_isSaving ? 'Saving...' : 'Save Daily Sheet'),
                         ),
                       ],
                     ),
@@ -7369,7 +7469,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                         )
                       : const Icon(Icons.cloud_upload_rounded, size: 20),
                   label: Text(
-                    _isSaving ? 'Saving Daily Factory Sheet...' : 'Save Daily Factory Sheet to MongoDB',
+                    _isSaving ? 'Saving Daily Factory Sheet...' : 'Save Daily Production Sheet',
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -7613,7 +7713,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Chronological list of all daily factory production sheets submitted to MongoDB. Admin can inspect, reload, or print past physical slips.',
+            'Chronological list of all daily factory production sheets saved in factory records. Admin can inspect, reload, or print past physical slips.',
             style: TextStyle(fontSize: 12.5, color: Colors.black54),
           ),
           const Divider(height: 20),

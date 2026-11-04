@@ -179,7 +179,7 @@ void showServerConfigDialog(BuildContext context, DeebaStore store) {
                       isSuccess = ok;
                       if (ok) {
                         testResultMsg =
-                            'Connected successfully! Live MongoDB is UP.';
+                            'Connected successfully! Cloud Database is Online.';
                       } else {
                         testResultMsg =
                             'Connection failed. Check IP address, port 8080, and ensure PC Wi-Fi is reachable.';

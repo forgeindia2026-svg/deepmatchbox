@@ -189,8 +189,8 @@ class _DeebaMatchHouseAppState extends State<DeebaMatchHouseApp> {
                             const SizedBox(width: 5),
                             Text(
                               _store.isApiConnected
-                                  ? 'Live MongoDB'
-                                  : 'Offline Mode',
+                                  ? 'Cloud Online'
+                                  : 'Local Mode',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 11,

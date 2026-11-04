@@ -102,7 +102,7 @@ class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Top Row: Back button + Live MongoDB Badge with Settings Tap
+                  // Top Row: Back button + Cloud Status Badge with Settings Tap
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -149,7 +149,7 @@ class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
                               const SizedBox(width: 5),
                               Text(
                                 widget.store.isApiConnected
-                                    ? 'Live MongoDB'
+                                    ? 'Cloud Online'
                                     : 'Server Settings',
                                 style: const TextStyle(
                                   color: Colors.white,

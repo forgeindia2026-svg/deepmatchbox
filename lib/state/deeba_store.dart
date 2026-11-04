@@ -79,7 +79,7 @@ class DeebaStore extends ChangeNotifier {
         if (prdRecs.isNotEmpty) productionRecords = prdRecs;
         if (attRecs.isNotEmpty) dailyRecords = attRecs;
         if (usrs.isNotEmpty) systemUsers = usrs;
-        syncStatusMessage = 'Live Connected to MongoDB (deeba_match_house)';
+        syncStatusMessage = 'Live Connected to Cloud Database (deeba_match_house)';
       } else {
         isApiConnected = false;
         syncStatusMessage = 'Backend offline. Tap to reconnect.';
