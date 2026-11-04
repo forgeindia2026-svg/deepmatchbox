@@ -6842,80 +6842,127 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.grey.shade200),
                 ),
-                child: Wrap(
-                  spacing: 16,
-                  runSpacing: 12,
-                  alignment: WrapAlignment.spaceBetween,
-                  crossAxisAlignment: WrapCrossAlignment.center,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
                       children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.assignment_turned_in_rounded,
-                                color: Color(0xFF065F46), size: 24),
-                            SizedBox(width: 8),
-                            Text(
-                              'Daily Factory Production & Stock Sheet',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w900,
-                              ),
+                        const Icon(Icons.assignment_turned_in_rounded,
+                            color: Color(0xFF065F46), size: 24),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Daily Factory Production & Stock Sheet',
+                            style: TextStyle(
+                              fontSize: isMobile ? 16 : 18,
+                              fontWeight: FontWeight.w900,
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Digitized Factory Slip • Date: ${_formatDate(_selectedDate)} ($_dayName) • By ${widget.store.loggedInUserName}',
-                          style: const TextStyle(color: Colors.black54, fontSize: 12),
+                          ),
                         ),
                       ],
                     ),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: _pickDate,
-                          icon: const Icon(Icons.calendar_month_rounded, size: 16),
-                          label: Text(
-                            '${_formatDate(_selectedDate)} ($_dayName)',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF065F46),
-                            side: const BorderSide(color: Color(0xFF065F46)),
-                          ),
-                          onPressed: _showPrintSlipDialog,
-                          icon: const Icon(Icons.print_rounded, size: 16),
-                          label: const Text('Preview Paper Slip (Image 1 & 2)'),
-                        ),
-                        FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF065F46),
-                          ),
-                          onPressed: _isSaving ? null : _saveSheet,
-                          icon: _isSaving
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2, color: Colors.white),
-                                )
-                              : const Icon(Icons.save_rounded, size: 18),
-                          label: Text(_isSaving ? 'Saving...' : 'Save Daily Sheet'),
-                        ),
-                      ],
+                    const SizedBox(height: 4),
+                    Text(
+                      'Digitized Factory Slip • Date: ${_formatDate(_selectedDate)} ($_dayName) • By ${widget.store.loggedInUserName}',
+                      style: const TextStyle(color: Colors.black54, fontSize: 12),
                     ),
+                    const SizedBox(height: 14),
+                    if (isMobile)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFFB91C1C),
+                              side: const BorderSide(color: Color(0xFFB91C1C)),
+                              padding: const EdgeInsets.symmetric(vertical: 11),
+                            ),
+                            onPressed: _pickDate,
+                            icon: const Icon(Icons.calendar_month_rounded, size: 16),
+                            label: Text(
+                              '${_formatDate(_selectedDate)} ($_dayName)',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF065F46),
+                              side: const BorderSide(color: Color(0xFF065F46)),
+                              padding: const EdgeInsets.symmetric(vertical: 11),
+                            ),
+                            onPressed: _showPrintSlipDialog,
+                            icon: const Icon(Icons.print_rounded, size: 16),
+                            label: const Text('Preview Paper Slip'),
+                          ),
+                          const SizedBox(height: 8),
+                          FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF065F46),
+                              padding: const EdgeInsets.symmetric(vertical: 11),
+                            ),
+                            onPressed: _isSaving ? null : _saveSheet,
+                            icon: _isSaving
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Icon(Icons.save_rounded, size: 18),
+                            label: Text(_isSaving ? 'Saving...' : 'Save Daily Sheet'),
+                          ),
+                        ],
+                      )
+                    else
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 10,
+                        children: [
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFFB91C1C),
+                              side: const BorderSide(color: Color(0xFFB91C1C)),
+                            ),
+                            onPressed: _pickDate,
+                            icon: const Icon(Icons.calendar_month_rounded, size: 16),
+                            label: Text(
+                              '${_formatDate(_selectedDate)} ($_dayName)',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFF065F46),
+                              side: const BorderSide(color: Color(0xFF065F46)),
+                            ),
+                            onPressed: _showPrintSlipDialog,
+                            icon: const Icon(Icons.print_rounded, size: 16),
+                            label: const Text('Preview Paper Slip'),
+                          ),
+                          FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF065F46),
+                            ),
+                            onPressed: _isSaving ? null : _saveSheet,
+                            icon: _isSaving
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Icon(Icons.save_rounded, size: 18),
+                            label: Text(_isSaving ? 'Saving...' : 'Save Daily Sheet'),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
 
-              // ==================== SECTION 1: TWO-COLUMN FRAME & BOX METRICS (EXACT IMAGE 2) ====================
+              // ==================== SECTION 1: TWO-COLUMN FRAME & BOX METRICS ====================
               Container(
                 padding: EdgeInsets.all(isMobile ? 14 : 20),
                 decoration: BoxDecoration(
@@ -6926,30 +6973,52 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          '1. Frame & Box Volume Metrics (Adappu & Dipping Frames - Image 2)',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFECFDF5),
-                            borderRadius: BorderRadius.circular(6),
+                    if (isMobile)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '1. Frame & Box Volume Metrics',
+                            style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800),
                           ),
-                          child: const Text(
-                            'Matches Paper Top Half',
+                          const SizedBox(height: 2),
+                          Text(
+                            'Machine Output & Dipping Frames Balance',
                             style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF065F46),
+                              fontSize: 11.5,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      )
+                    else
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              '1. Frame & Box Volume Metrics (Machine Output & Dipping Frames)',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFECFDF5),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'Daily Frame Metrics',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF065F46),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: 14),
 
                     // Side-by-Side Two Columns matching Image 2
@@ -6993,7 +7062,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      '2. Madippu Bundles & Company Lines (Folding Summary - Image 2)',
+                      '2. Madippu Bundles & Company Lines (Folding Summary)',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 12),
@@ -7034,13 +7103,10 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                     const SizedBox(height: 14),
 
                     // 1. Company & 2. Company Inputs
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 12,
-                      children: [
-                        SizedBox(
-                          width: isMobile ? double.infinity : 320,
-                          child: TextField(
+                    if (isMobile)
+                      Column(
+                        children: [
+                          TextField(
                             controller: _company1Ctrl,
                             decoration: const InputDecoration(
                               labelText: '1. Company Line [Inward / Outward]',
@@ -7049,10 +7115,8 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                               isDense: true,
                             ),
                           ),
-                        ),
-                        SizedBox(
-                          width: isMobile ? double.infinity : 320,
-                          child: TextField(
+                          const SizedBox(height: 10),
+                          TextField(
                             controller: _company2Ctrl,
                             decoration: const InputDecoration(
                               labelText: '2. Company Line [Inward / Outward]',
@@ -7061,27 +7125,67 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                               isDense: true,
                             ),
                           ),
-                        ),
-                        SizedBox(
-                          width: isMobile ? double.infinity : 220,
-                          child: TextField(
+                          const SizedBox(height: 10),
+                          TextField(
                             controller: _companyTotalCtrl,
                             decoration: InputDecoration(
-                              labelText: 'TOTAL •',
+                              labelText: 'Total Company Bundles',
                               hintText: '${_totalMadippuBundles.toStringAsFixed(0)} Bundles',
                               border: const OutlineInputBorder(),
                               isDense: true,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      )
+                    else
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: TextField(
+                              controller: _company1Ctrl,
+                              decoration: const InputDecoration(
+                                labelText: '1. Company Line [Inward / Outward]',
+                                hintText: 'E.g. Sivakasi Print Pack - 200 Bdls',
+                                border: OutlineInputBorder(),
+                                isDense: true,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 3,
+                            child: TextField(
+                              controller: _company2Ctrl,
+                              decoration: const InputDecoration(
+                                labelText: '2. Company Line [Inward / Outward]',
+                                hintText: 'E.g. Madurai Board Mills - 150 Bdls',
+                                border: OutlineInputBorder(),
+                                isDense: true,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 2,
+                            child: TextField(
+                              controller: _companyTotalCtrl,
+                              decoration: InputDecoration(
+                                labelText: 'Total Bundles',
+                                hintText: '${_totalMadippuBundles.toStringAsFixed(0)} Bundles',
+                                border: const OutlineInputBorder(),
+                                isDense: true,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
 
-              // ==================== SECTION 3: MASTER BRAND STOCK RECONCILIATION TABLE (IMAGE 1) ====================
+              // ==================== SECTION 3: MASTER BRAND STOCK RECONCILIATION TABLE ====================
               Container(
                 padding: EdgeInsets.all(isMobile ? 14 : 20),
                 decoration: BoxDecoration(
@@ -7092,39 +7196,73 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '3. Master Brand Stock Reconciliation (Brand Stock & Sales)',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                            ),
-                            Text(
-                              'Opening + Produced (Madippu) = Total Available - Sales = Closing Stock',
-                              style: TextStyle(fontSize: 11.5, color: Colors.black54),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(8),
+                    if (isMobile)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '3. Master Brand Stock Reconciliation',
+                            style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800),
                           ),
-                          child: Text(
-                            'Closing Total: ${_totalClosing.toStringAsFixed(0)} Bundles',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 12.5,
-                              color: Color(0xFF065F46),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Opening + Produced = Total Available - Sales = Closing Stock',
+                            style: TextStyle(fontSize: 11, color: Colors.black54),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Closing Total: ${_totalClosing.toStringAsFixed(0)} Bundles',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 12,
+                                color: Color(0xFF065F46),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      )
+                    else
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '3. Master Brand Stock Reconciliation (Brand Stock & Sales)',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                                ),
+                                Text(
+                                  'Opening + Produced (Madippu) = Total Available - Sales = Closing Stock',
+                                  style: TextStyle(fontSize: 11.5, color: Colors.black54),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Closing Total: ${_totalClosing.toStringAsFixed(0)} Bundles',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 12.5,
+                                color: Color(0xFF065F46),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: 14),
 
                     // MOBILE VIEW: Interactive Cards
@@ -7416,7 +7554,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      '4. Material Inward, Issue & Closing Card (Varavu, Veliyedu & Iruppu - Image 1)',
+                      '4. Material Inward, Issue & Closing Card (Varavu, Veliyedu & Iruppu)',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 12),
@@ -7598,7 +7736,10 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
+          Expanded(
+            child: Text(label, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
+          ),
+          const SizedBox(width: 8),
           Text(
             value,
             style: TextStyle(
@@ -7644,7 +7785,10 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+          Expanded(
+            child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
+          ),
+          const SizedBox(width: 4),
           Text(value, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: color)),
         ],
       ),
@@ -7678,39 +7822,73 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Row(
-                children: [
-                  Icon(Icons.history_rounded,
-                      color: Color(0xFF0F172A), size: 22),
-                  SizedBox(width: 8),
-                  Text(
-              '5. Factory Daily Sheets Archive (History)',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-                ],
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEFF6FF),
-                  borderRadius: BorderRadius.circular(6),
+          if (isMobile)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.history_rounded, color: Color(0xFF0F172A), size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '5. Factory Daily Sheets Archive',
+                        style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ],
                 ),
-                child: Text(
-                  '${sheets.length} Recorded Sheets',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1D4ED8),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${sheets.length} Recorded Sheets',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1D4ED8),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            )
+          else
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.history_rounded,
+                        color: Color(0xFF0F172A), size: 22),
+                    SizedBox(width: 8),
+                    Text(
+                      '5. Factory Daily Sheets Archive (History)',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                    ),
+                  ],
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${sheets.length} Recorded Sheets',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1D4ED8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           const SizedBox(height: 6),
           const Text(
             'Chronological list of all daily factory production sheets saved in factory records. Admin can inspect, reload, or print past physical slips.',
