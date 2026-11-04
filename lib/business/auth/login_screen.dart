@@ -17,7 +17,7 @@ class BusinessLoginScreen extends StatefulWidget {
 }
 
 class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
-  int _selectedRoleTab = 0; // 0 = Admin, 1 = Staff
+  int _selectedRoleTab = 0; // 0 = Admin (Owner), 1 = Staff (Supervisor)
   late final TextEditingController _usernameCtrl;
   late final TextEditingController _passwordCtrl;
   bool _obscurePassword = true;
@@ -82,7 +82,7 @@ class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
         _errorMessage = (result['message'] != null &&
                 result['message'].toString().isNotEmpty)
             ? result['message'].toString()
-            : 'Invalid username or password. Check credentials or connection.';
+            : 'Invalid username or password. Please verify credentials.';
       });
     }
   }
@@ -93,515 +93,605 @@ class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Top Row: Back button + Cloud Status Badge with Settings Tap
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      if (widget.onBackToCustomerWebsite != null)
-                        TextButton.icon(
-                          onPressed: widget.onBackToCustomerWebsite,
-                          icon: const Icon(Icons.arrow_back_rounded,
-                              size: 16, color: Colors.white70),
-                          label: const Text(
-                            'Customer Website',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 12.5,
-                            ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF0B132B), // Deep midnight navy
+              Color(0xFF1E293B), // Dark industrial slate
+              Color(0xFF0F172A), // Pure graphite
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 18 : 24,
+                vertical: 24,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 440),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Single Unified Executive Login Card
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(isMobile ? 22 : 32),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(80),
+                            blurRadius: 36,
+                            offset: const Offset(0, 16),
                           ),
-                        )
-                      else
-                        const SizedBox.shrink(),
-                      InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: () =>
-                            showServerConfigDialog(context, widget.store),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(
-                            color: widget.store.isApiConnected
-                                ? const Color(0xFF065F46)
-                                : const Color(0xFF991B1B),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white24),
+                          BoxShadow(
+                            color: const Color(0xFFB91C1C).withAlpha(15),
+                            blurRadius: 40,
+                            offset: const Offset(0, 0),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                widget.store.isApiConnected
-                                    ? Icons.cloud_done_rounded
-                                    : Icons.cloud_off_rounded,
-                                size: 13,
-                                color: Colors.white,
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Brand Icon & Identity
+                          Center(
+                            child: Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFFDC2626), Color(0xFF991B1B)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(18),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFFDC2626).withAlpha(80),
+                                    blurRadius: 14,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 5),
-                              Text(
-                                widget.store.isApiConnected
-                                    ? 'Cloud Online'
-                                    : 'Server Settings',
-                                style: const TextStyle(
+                              child: const Center(
+                                child: Icon(
+                                  Icons.local_fire_department_rounded,
+                                  size: 34,
                                   color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(width: 3),
-                              const Icon(Icons.settings_outlined,
-                                  size: 11, color: Colors.white70),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Brand Header Card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFB91C1C), Color(0xFF7F1D1D)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black45,
-                          blurRadius: 20,
-                          offset: Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(38),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.local_fire_department_rounded,
-                            size: 38,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'DEEBA MATCH HOUSE',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Factory ERP & Operations Portal',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Main Login Form Card
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(isMobile ? 20 : 28),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 25,
-                          offset: Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Text(
-                          'Select Login Role',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 14,
-                            color: Colors.black54,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-
-                        // Role Selector Tabs (Admin vs Staff)
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          padding: const EdgeInsets.all(4),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(10),
-                                  onTap: () => _onRoleTabChanged(0),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 11),
-                                    decoration: BoxDecoration(
-                                      color: _selectedRoleTab == 0
-                                          ? const Color(0xFFB91C1C)
-                                          : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(10),
-                                      boxShadow: _selectedRoleTab == 0
-                                          ? [
-                                              BoxShadow(
-                                                color: const Color(0xFFB91C1C)
-                                                    .withAlpha(76),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 3),
-                                              )
-                                            ]
-                                          : null,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.security_rounded,
-                                          size: 18,
-                                          color: _selectedRoleTab == 0
-                                              ? Colors.white
-                                              : Colors.black87,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Admin',
-                                          style: TextStyle(
-                                            color: _selectedRoleTab == 0
-                                                ? Colors.white
-                                                : Colors.black87,
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(10),
-                                  onTap: () => _onRoleTabChanged(1),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 11),
-                                    decoration: BoxDecoration(
-                                      color: _selectedRoleTab == 1
-                                          ? const Color(0xFF0F766E)
-                                          : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(10),
-                                      boxShadow: _selectedRoleTab == 1
-                                          ? [
-                                              BoxShadow(
-                                                color: const Color(0xFF0F766E)
-                                                    .withAlpha(76),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 3),
-                                              )
-                                            ]
-                                          : null,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.engineering_rounded,
-                                          size: 18,
-                                          color: _selectedRoleTab == 1
-                                              ? Colors.white
-                                              : Colors.black87,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Staff / Floor',
-                                          style: TextStyle(
-                                            color: _selectedRoleTab == 1
-                                                ? Colors.white
-                                                : Colors.black87,
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Role Description Banner
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: _selectedRoleTab == 0
-                                ? Colors.red.shade50
-                                : Colors.teal.shade50,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: _selectedRoleTab == 0
-                                  ? Colors.red.shade100
-                                  : Colors.teal.shade100,
                             ),
                           ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                _selectedRoleTab == 0
-                                    ? Icons.admin_panel_settings_rounded
-                                    : Icons.badge_rounded,
-                                color: _selectedRoleTab == 0
-                                    ? Colors.red.shade700
-                                    : Colors.teal.shade700,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  _selectedRoleTab == 0
-                                      ? 'Owner / Executive: Full access to Dashboard, Financial Reports, Salary Payouts, Sheet Approval & All Dispatches.'
-                                      : 'Floor Supervisor: Focused access to Today\'s Paper Slip, Raw Material Inward, Production Entry, Attendance & Stock.',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: _selectedRoleTab == 0
-                                        ? Colors.red.shade900
-                                        : Colors.teal.shade900,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 16),
 
-                        // Username Field
-                        TextField(
-                          controller: _usernameCtrl,
-                          decoration: InputDecoration(
-                            labelText: 'Username or Email',
-                            prefixIcon: const Icon(Icons.person_outline_rounded),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                          const Text(
+                            'DEEBA MATCH HOUSE',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 21,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.1,
+                              color: Color(0xFF0F172A),
                             ),
-                            filled: true,
-                            fillColor: Colors.grey.shade50,
                           ),
-                        ),
-                        const SizedBox(height: 14),
-
-                        // Password Field
-                        TextField(
-                          controller: _passwordCtrl,
-                          obscureText: _obscurePassword,
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            prefixIcon: const Icon(Icons.lock_outline_rounded),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_off_outlined
-                                    : Icons.visibility_outlined,
-                                size: 20,
-                              ),
-                              onPressed: () => setState(
-                                  () => _obscurePassword = !_obscurePassword),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Sivakasi Safety Matches • Operations Portal',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF64748B),
                             ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            filled: true,
-                            fillColor: Colors.grey.shade50,
                           ),
-                          onSubmitted: (_) => _attemptLogin(),
-                        ),
-                        const SizedBox(height: 12),
+                          const SizedBox(height: 24),
 
-                        // Error message if any
-                        if (_errorMessage != null) ...[
+                          // Clean Role Selector (iOS / macOS Style Segmented Control)
                           Container(
-                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.red.shade50,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: Colors.red.shade200),
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
                             ),
+                            padding: const EdgeInsets.all(4),
                             child: Row(
                               children: [
-                                const Icon(Icons.error_outline_rounded,
-                                    size: 16, color: Colors.red),
-                                const SizedBox(width: 8),
                                 Expanded(
-                                  child: Text(
-                                    _errorMessage!,
-                                    style: const TextStyle(
-                                      color: Colors.red,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  child: _buildRoleSegment(
+                                    index: 0,
+                                    label: 'Admin (Owner)',
+                                    icon: Icons.admin_panel_settings_rounded,
+                                    activeColor: const Color(0xFFB91C1C),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _buildRoleSegment(
+                                    index: 1,
+                                    label: 'Supervisor',
+                                    icon: Icons.engineering_rounded,
+                                    activeColor: const Color(0xFF0F766E),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 12),
-                        ],
+                          const SizedBox(height: 8),
 
-                        // Login Button
-                        SizedBox(
-                          height: 50,
-                          child: FilledButton(
-                            style: FilledButton.styleFrom(
-                              backgroundColor: _selectedRoleTab == 0
-                                  ? const Color(0xFFB91C1C)
-                                  : const Color(0xFF0F766E),
-                              shape: RoundedRectangleBorder(
+                          // Subtle Role Hint
+                          Text(
+                            _selectedRoleTab == 0
+                                ? 'Full owner access: Dashboard, financial reports & settings'
+                                : 'Floor supervisor: Daily sheets, production entry & stock',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Username / Email Input
+                          const Text(
+                            'Username or Email',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF334155),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: _usernameCtrl,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF0F172A),
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Enter username',
+                              hintStyle: TextStyle(
+                                color: Colors.grey.shade400,
+                                fontSize: 13.5,
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.person_outline_rounded,
+                                size: 19,
+                                color: Color(0xFF64748B),
+                              ),
+                              filled: true,
+                              fillColor: const Color(0xFFF8FAFC),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 14,
+                              ),
+                              border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: _selectedRoleTab == 0
+                                      ? const Color(0xFFB91C1C)
+                                      : const Color(0xFF0F766E),
+                                  width: 1.8,
+                                ),
                               ),
                             ),
-                            onPressed: _isLoading ? null : _attemptLogin,
-                            child: _isLoading
-                                ? const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      SizedBox(
-                                        height: 18,
-                                        width: 18,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        ),
-                                      ),
-                                      SizedBox(width: 10),
-                                      Text(
-                                        'Logging in...',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 14,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Text(
-                                        'Login to Portal',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 15,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      const Icon(Icons.arrow_forward_rounded,
-                                          size: 18),
-                                    ],
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Password Input
+                          const Text(
+                            'Password',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF334155),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          TextField(
+                            controller: _passwordCtrl,
+                            obscureText: _obscurePassword,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF0F172A),
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Enter password',
+                              hintStyle: TextStyle(
+                                color: Colors.grey.shade400,
+                                fontSize: 13.5,
+                              ),
+                              prefixIcon: const Icon(
+                                Icons.lock_outline_rounded,
+                                size: 19,
+                                color: Color(0xFF64748B),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_off_outlined
+                                      : Icons.visibility_outlined,
+                                  size: 19,
+                                  color: const Color(0xFF64748B),
+                                ),
+                                onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: const Color(0xFFF8FAFC),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 14,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: _selectedRoleTab == 0
+                                      ? const Color(0xFFB91C1C)
+                                      : const Color(0xFF0F766E),
+                                  width: 1.8,
+                                ),
+                              ),
+                            ),
+                            onSubmitted: (_) => _attemptLogin(),
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Error Message if any
+                          if (_errorMessage != null) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 9,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEF2F2),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: const Color(0xFFFECACA)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.error_outline_rounded,
+                                    size: 16,
+                                    color: Color(0xFFDC2626),
                                   ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _errorMessage!,
+                                      style: const TextStyle(
+                                        color: Color(0xFF991B1B),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                          ],
+
+                          // Sign In Button
+                          SizedBox(
+                            height: 48,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: _selectedRoleTab == 0
+                                      ? [
+                                          const Color(0xFFB91C1C),
+                                          const Color(0xFF991B1B)
+                                        ]
+                                      : [
+                                          const Color(0xFF0F766E),
+                                          const Color(0xFF115E59)
+                                        ],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: (_selectedRoleTab == 0
+                                            ? const Color(0xFFB91C1C)
+                                            : const Color(0xFF0F766E))
+                                        .withAlpha(75),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: _isLoading ? null : _attemptLogin,
+                                child: _isLoading
+                                    ? const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            height: 18,
+                                            width: 18,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                          SizedBox(width: 10),
+                                          Text(
+                                            'Signing in...',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 14,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Sign In to Portal',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 14.5,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Icon(
+                                            Icons.arrow_forward_rounded,
+                                            size: 17,
+                                            color: Colors.white,
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+
+                          // Quick Test Fill Chips
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Quick Demo: ',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  color: Colors.grey.shade500,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              InkWell(
+                                borderRadius: BorderRadius.circular(6),
+                                onTap: () {
+                                  _onRoleTabChanged(0);
+                                  _attemptLogin();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3.5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEF2F2),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: const Color(0xFFFECACA),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Admin (Owner)',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFFB91C1C),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              InkWell(
+                                borderRadius: BorderRadius.circular(6),
+                                onTap: () {
+                                  _onRoleTabChanged(1);
+                                  _attemptLogin();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3.5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF0FDFA),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: const Color(0xFF99F6E4),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Supervisor (Ramesh)',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF0F766E),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Clean Footer Bar (Cloud Status + Subtle Server Settings)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 7,
+                          height: 7,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: widget.store.isApiConnected
+                                ? const Color(0xFF34D399)
+                                : const Color(0xFF94A3B8),
                           ),
                         ),
-                        if (_isLoading) ...[
-                          const SizedBox(height: 10),
-                          Text(
-                            'Connecting to Cloud API... Please wait a few seconds.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              color: Colors.grey.shade600,
-                              fontStyle: FontStyle.italic,
+                        const SizedBox(width: 6),
+                        Text(
+                          widget.store.isApiConnected
+                              ? 'Cloud Online'
+                              : 'Local Storage Ready',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: Colors.white.withAlpha(150),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        InkWell(
+                          borderRadius: BorderRadius.circular(6),
+                          onTap: () =>
+                              showServerConfigDialog(context, widget.store),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 2,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.settings_outlined,
+                                  size: 12,
+                                  color: Colors.white.withAlpha(100),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Settings',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.white.withAlpha(100),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                        const SizedBox(height: 18),
-
-                        // Quick 1-Click Fill Helpers (for easy testing)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Quick Test Fill: ',
-                              style: TextStyle(
-                                  fontSize: 12, color: Colors.black45),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                _onRoleTabChanged(0);
-                                _attemptLogin();
-                              },
-                              child: const Text(
-                                'Admin (Owner)',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFB91C1C),
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                            const Text('  •  ',
-                                style: TextStyle(color: Colors.black26)),
-                            InkWell(
-                              onTap: () {
-                                _onRoleTabChanged(1);
-                                _attemptLogin();
-                              },
-                              child: const Text(
-                                'Staff (Ramesh)',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F766E),
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    if (widget.onBackToCustomerWebsite != null) ...[
+                      const SizedBox(height: 10),
+                      TextButton.icon(
+                        onPressed: widget.onBackToCustomerWebsite,
+                        icon: const Icon(
+                          Icons.arrow_back_rounded,
+                          size: 13,
+                          color: Colors.white54,
+                        ),
+                        label: const Text(
+                          'Back to Customer Storefront',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: Colors.white54,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleSegment({
+    required int index,
+    required String label,
+    required IconData icon,
+    required Color activeColor,
+  }) {
+    final isSelected = _selectedRoleTab == index;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(9),
+      onTap: () => _onRoleTabChanged(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 9),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(9),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(20),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected ? activeColor : const Color(0xFF64748B),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? const Color(0xFF0F172A) : const Color(0xFF64748B),
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                fontSize: 12.5,
+              ),
+            ),
+          ],
         ),
       ),
     );
