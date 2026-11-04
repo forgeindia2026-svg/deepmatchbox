@@ -44,7 +44,12 @@ class DeebaStore extends ChangeNotifier {
     isSyncing = true;
     notifyListeners();
     try {
-      final healthy = await api.checkHealth();
+      bool healthy = await api.checkHealth();
+      if (!healthy) {
+        // Cold-start retry for cloud server wake up
+        await Future.delayed(const Duration(seconds: 3));
+        healthy = await api.checkHealth();
+      }
       if (healthy) {
         isApiConnected = true;
         final prods = await api.fetchProducts();

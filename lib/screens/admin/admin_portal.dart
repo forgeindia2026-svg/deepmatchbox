@@ -128,7 +128,7 @@ class _AdminStaffPortalState extends State<AdminStaffPortal> {
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: InkWell(
               borderRadius: BorderRadius.circular(20),
-              onTap: () => showServerConfigDialog(context, widget.store),
+              onTap: () async { if (!widget.store.isApiConnected) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reconnecting to Render Cloud API...'), duration: Duration(seconds: 2))); await widget.store.loadLiveFromBackend(); if (widget.store.isApiConnected) return; } showServerConfigDialog(context, widget.store); },
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
@@ -607,7 +607,7 @@ void showDailyPaperSlipDialog(BuildContext context, DailyProductionSheet sheet) 
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'à®¤à¯€à®ªà®¾ à®®à¯‡à®Ÿà¯à®šà¯ à®’à®°à¯à®•à¯à®¸à¯ • DEEBA MATCH WORKS',
+                            'DEEBA MATCH WORKS • Sivakasi',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w900,
@@ -629,14 +629,14 @@ void showDailyPaperSlipDialog(BuildContext context, DailyProductionSheet sheet) 
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            'à®¤à¯‡à®¤à®¿ / Date : ${sheet.date}',
+                            'Date / Thethi : ${sheet.date}',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
                           ),
                           Text(
-                            'à®¨à®¾à®³à¯ / Day : ${sheet.dayOfWeek}',
+                            'Day / Naal : ${sheet.dayOfWeek}',
                             style: const TextStyle(
                               color: Colors.black87,
                               fontSize: 12,
@@ -658,11 +658,11 @@ void showDailyPaperSlipDialog(BuildContext context, DailyProductionSheet sheet) 
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            slipLineItem('à®…à®Ÿà®ªà¯à®ªà¯ à®ªà®¿à®°à¯‡à®®à¯ :', '${sheet.adappuFrames}'),
-                            slipLineItem('à®®à¯Šà®¤à¯à®¤ à®ªà¯†à®Ÿà¯à®Ÿà®¿ :', '${sheet.totalBoxes}'),
-                            slipLineItem('à®†à®µà®°à¯‡à®œà¯ à®ªà¯†à®Ÿà¯à®Ÿà®¿ :', sheet.avgBoxesPerFrame.toStringAsFixed(1)),
-                            slipLineItem('à®•à¯à®°à¯‹à®¸à¯ :', sheet.grossCount.toStringAsFixed(1)),
-                            slipLineItem('à®ªà®£à¯à®Ÿà®²à¯ :', bundlesFromBoxes),
+                            slipLineItem('Adappu Frames Fed :', '${sheet.adappuFrames}'),
+                            slipLineItem('Total Boxes (Petti) :', '${sheet.totalBoxes}'),
+                            slipLineItem('Average Boxes / Frame :', sheet.avgBoxesPerFrame.toStringAsFixed(1)),
+                            slipLineItem('Gross Count (144) :', sheet.grossCount.toStringAsFixed(1)),
+                            slipLineItem('Bundles (600) :', bundlesFromBoxes),
                           ],
                         ),
                       ),
@@ -672,11 +672,11 @@ void showDailyPaperSlipDialog(BuildContext context, DailyProductionSheet sheet) 
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            slipLineItem('à®‡à®°à¯à®ªà¯à®ªà¯ à®ªà®¿à®°à¯‡à®®à¯ :', (openingFrames > 0 ? openingFrames : 0).toString()),
-                            slipLineItem('à®Ÿà®¿à®ªà¯à®ªà®¿à®™à¯ à®ªà®¿à®°à¯‡à®®à¯ :', '${sheet.dippingFrames}'),
-                            slipLineItem('à®®à¯Šà®¤à¯à®¤à®®à¯ :', (totalDipped > 0 ? totalDipped : 0).toString(), bold: true),
-                            slipLineItem('à®…à®Ÿà®ªà¯à®ªà¯ à®ªà®¿à®°à¯‡à®®à¯ :', '${sheet.adappuFrames}'),
-                            slipLineItem('à®‡à®°à¯à®ªà¯à®ªà¯ à®ªà®¿à®°à¯‡à®®à¯ :', '${sheet.balanceFrames}', bold: true, color: const Color(0xFF065F46)),
+                            slipLineItem('Opening Frames (Iruppu) :', (openingFrames > 0 ? openingFrames : 0).toString()),
+                            slipLineItem('Dipping Frames :', '${sheet.dippingFrames}'),
+                            slipLineItem('Total Dipped Frames :', (totalDipped > 0 ? totalDipped : 0).toString(), bold: true),
+                            slipLineItem('Adappu Frames Fed :', '${sheet.adappuFrames}'),
+                            slipLineItem('= Closing Balance (Meedhi) :', '${sheet.balanceFrames}', bold: true, color: const Color(0xFF065F46)),
                           ],
                         ),
                       ),
@@ -689,7 +689,7 @@ void showDailyPaperSlipDialog(BuildContext context, DailyProductionSheet sheet) 
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'à®®à®Ÿà®¿à®ªà¯à®ªà¯ à®ªà®£à¯à®Ÿà®²à¯ : EAA: ${eaaBundles.toInt()} / PL: ${plBundles.toInt()} / JOK: ${jokBundles.toInt()}  TOTAL: ${sheet.totalBundlesProduced}',
+                        'Madippu Bundles (Folding) : EAA: ${eaaBundles.toInt()} / PL: ${plBundles.toInt()} / JOK: ${jokBundles.toInt()}  TOTAL: ${sheet.totalBundlesProduced}',
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF065F46)),
                       ),
                     ],
@@ -697,7 +697,7 @@ void showDailyPaperSlipDialog(BuildContext context, DailyProductionSheet sheet) 
                   if (sheet.companyMaterialInward.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
-                      '1. à®•à®®à¯à®ªà¯†à®©à®¿ : ${sheet.companyMaterialInward}',
+                      '1. Company Line : ${sheet.companyMaterialInward}',
                       style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic),
                     ),
                   ],
@@ -718,12 +718,12 @@ void showDailyPaperSlipDialog(BuildContext context, DailyProductionSheet sheet) 
                       TableRow(
                         decoration: const BoxDecoration(color: Color(0xFFECFDF5)),
                         children: [
-                          slipHeader('à®ªà®¿à®°à®¾à®£à¯à®Ÿà¯'),
-                          slipHeader('à®‡à®°à¯à®ªà¯à®ªà¯ à®ªà®£à¯à®Ÿà®²à¯'),
-                          slipHeader('à®®à®Ÿà®¿à®ªà¯à®ªà¯ à®ªà®£à¯à®Ÿà®²à¯'),
-                          slipHeader('à®®à¯Šà®¤à¯à®¤ à®ªà®£à¯à®Ÿà®²à¯'),
-                          slipHeader('à®šà¯‡à®²à¯à®¸à¯ à®ªà®£à¯à®Ÿà®²à¯'),
-                          slipHeader('à®®à¯Šà®¤à¯à®¤ à®‡à®°à¯à®ªà¯à®ªà¯ à®ªà®£à¯à®Ÿà®²à¯'),
+                          slipHeader('Brand Name'),
+                          slipHeader('Opening (Iruppu)'),
+                          slipHeader('Produced (Madippu)'),
+                          slipHeader('Total Available'),
+                          slipHeader('Sales Bundles'),
+                          slipHeader('Closing Stock'),
                         ],
                       ),
                       for (final r in sheet.brandRows)
@@ -758,13 +758,13 @@ void showDailyPaperSlipDialog(BuildContext context, DailyProductionSheet sheet) 
                     children: [
                       Expanded(
                         child: Text(
-                          'à®•à®®à¯à®ªà¯†à®©à®¿ à®®à¯†à®Ÿà¯à®Ÿà¯€à®°à®¿à®¯à®²à¯ à®µà®°à®µà¯ : ${sheet.companyMaterialInward.isNotEmpty ? sheet.companyMaterialInward : "Nil"}',
+                          '•   : ${sheet.companyMaterialInward.isNotEmpty ? sheet.companyMaterialInward : "Nil"}',
                           style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
                         ),
                       ),
                       Expanded(
                         child: Text(
-                          'à®•à®®à¯à®ªà¯†à®©à®¿ à®®à¯†à®Ÿà¯à®Ÿà¯€à®°à®¿à®¯à®²à¯ à®µà¯†à®³à®¿à®¯à¯€à®Ÿà¯ : ${sheet.companyMaterialOutward.isNotEmpty ? sheet.companyMaterialOutward : "Nil"}',
+                          '•   : ${sheet.companyMaterialOutward.isNotEmpty ? sheet.companyMaterialOutward : "Nil"}',
                           style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
                           textAlign: TextAlign.end,
                         ),
@@ -776,11 +776,11 @@ void showDailyPaperSlipDialog(BuildContext context, DailyProductionSheet sheet) 
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'à®‡à®°à¯à®ªà¯à®ªà¯ à®•à®¾à®Ÿà¯ : ${sheet.closingCardNote.isNotEmpty ? sheet.closingCardNote : "Verified"}',
+                        'Closing Card Note : ${sheet.closingCardNote.isNotEmpty ? sheet.closingCardNote : "Verified"}',
                         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
                       ),
                       const Text(
-                        'à®ªà®¿à®°à®¾à®£à¯à®Ÿà¯ : Eagle, Pulli, Joker',
+                        ' : Eagle, Pulli, Joker',
                         style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF065F46)),
                       ),
                     ],
@@ -2117,7 +2117,7 @@ class _OnlineOrdersAdminViewState extends State<_OnlineOrdersAdminView> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              '${order.customerName}  •  ðŸ“ž ${order.mobileNumber}',
+                              '${order.customerName}  •   ${order.mobileNumber}',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
@@ -2125,7 +2125,7 @@ class _OnlineOrdersAdminViewState extends State<_OnlineOrdersAdminView> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'ðŸ“ ${order.address}',
+                              ' ${order.address}',
                               style: const TextStyle(
                                   color: Colors.black87, fontSize: 13),
                             ),
@@ -3491,7 +3491,7 @@ class _PurchasesManagementViewState extends State<_PurchasesManagementView> {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  'Qty: ${p.quantity.toInt()} ${p.unit} Ã— Rs. ${p.purchasePrice.toStringAsFixed(0)}',
+                                  'Qty: ${p.quantity.toInt()} ${p.unit}  Rs. ${p.purchasePrice.toStringAsFixed(0)}',
                                   style: TextStyle(
                                     color: Colors.green.shade800,
                                     fontWeight: FontWeight.w700,
@@ -4516,7 +4516,7 @@ class _ProductionManagementViewState extends State<_ProductionManagementView> {
                         alignment: WrapAlignment.spaceBetween,
                         children: [
                           Text(
-                            '${prod.id} • ${prod.productBrand} (${prod.priceCategory})  —  +${prod.quantityProduced.toInt()} Bundles',
+                            '${prod.id} • ${prod.productBrand} (${prod.priceCategory})    +${prod.quantityProduced.toInt()} Bundles',
                             style: const TextStyle(
                               fontWeight: FontWeight.w800,
                               fontSize: 15,
@@ -5067,7 +5067,7 @@ class _SalesManagementViewState extends State<_SalesManagementView> {
                           ),
                           const SizedBox(height: 3),
                           Text(
-                            'ðŸ“ž ${s.mobileNumber} • ${s.address}',
+                            ' ${s.mobileNumber} • ${s.address}',
                             style: const TextStyle(
                                 fontSize: 12, color: Colors.black54),
                           ),
@@ -6830,7 +6830,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          '1. Frame & Box Volume Metrics [à®…à®Ÿà®ªà¯à®ªà¯ & à®Ÿà®¿à®ªà¯à®ªà®¿à®™à¯ à®ªà®¿à®°à¯‡à®®à¯ - Image 2]',
+                          '1. Frame & Box Volume Metrics (Adappu & Dipping Frames - Image 2)',
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                         ),
                         Container(
@@ -6893,7 +6893,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      '2. à®®à®Ÿà®¿à®ªà¯à®ªà¯ à®ªà®£à¯à®Ÿà®²à¯ & à®•à®®à¯à®ªà¯†à®©à®¿ [Folding Summary & Company Lines - Image 2]',
+                      '2. Madippu Bundles & Company Lines (Folding Summary - Image 2)',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 12),
@@ -6910,7 +6910,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'à®®à®Ÿà®¿à®ªà¯à®ªà¯ à®ªà®£à¯à®Ÿà®²à¯ (Folding Bundles Produced Today):',
+                            'Madippu Bundles (Folding Bundles Produced Today):',
                             style: TextStyle(
                               fontWeight: FontWeight.w800,
                               fontSize: 12.5,
@@ -6943,7 +6943,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                           child: TextField(
                             controller: _company1Ctrl,
                             decoration: const InputDecoration(
-                              labelText: '1. à®•à®®à¯à®ªà¯†à®©à®¿ [Company 1 Line]',
+                              labelText: '1. Company Line [Inward / Outward]',
                               hintText: 'E.g. Sivakasi Print Pack - 200 Bdls',
                               border: OutlineInputBorder(),
                               isDense: true,
@@ -6955,7 +6955,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                           child: TextField(
                             controller: _company2Ctrl,
                             decoration: const InputDecoration(
-                              labelText: '2. à®•à®®à¯à®ªà¯†à®©à®¿ [Company 2 Line]',
+                              labelText: '2. Company Line [Inward / Outward]',
                               hintText: 'E.g. Madurai Board Mills - 150 Bdls',
                               border: OutlineInputBorder(),
                               isDense: true,
@@ -6967,7 +6967,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                           child: TextField(
                             controller: _companyTotalCtrl,
                             decoration: InputDecoration(
-                              labelText: 'TOTAL à®•à®®à¯à®ªà¯†à®©à®¿',
+                              labelText: 'TOTAL •',
                               hintText: '${_totalMadippuBundles.toStringAsFixed(0)} Bundles',
                               border: const OutlineInputBorder(),
                               isDense: true,
@@ -6999,7 +6999,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '3. Master Brand Stock Reconciliation [à®ªà®¿à®°à®¾à®£à¯à®Ÿà¯ à®‡à®°à¯à®ªà¯à®ªà¯ & à®šà¯‡à®²à¯à®¸à¯]',
+                              '3. Master Brand Stock Reconciliation (Brand Stock & Sales)',
                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                             ),
                             Text(
@@ -7076,7 +7076,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                                   children: [
                                     Expanded(
                                       child: _compactMetricPill(
-                                        'Opening [à®‡à®°à¯à®ªà¯à®ªà¯]',
+                                        'Opening ',
                                         r.openingStock.toStringAsFixed(0),
                                         Colors.blueGrey,
                                       ),
@@ -7100,7 +7100,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                                         keyboardType: TextInputType.number,
                                         decoration: const InputDecoration(
                                           isDense: true,
-                                          labelText: 'Produced [à®®à®Ÿà®¿à®ªà¯à®ªà¯]',
+                                          labelText: 'Produced (Madippu)',
                                           border: OutlineInputBorder(),
                                         ),
                                       ),
@@ -7112,7 +7112,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                                         keyboardType: TextInputType.number,
                                         decoration: const InputDecoration(
                                           isDense: true,
-                                          labelText: 'Sales [à®šà¯‡à®²à¯à®¸à¯]',
+                                          labelText: 'Sales (Virpanai)',
                                           border: OutlineInputBorder(),
                                         ),
                                       ),
@@ -7142,12 +7142,12 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                               color: Color(0xFFF1F5F9),
                             ),
                             children: [
-                              _tableHead('Brand Name\n[à®ªà®¿à®°à®¾à®£à¯à®Ÿà¯]'),
-                              _tableHead('Opening Stock\n[à®‡à®°à¯à®ªà¯à®ªà¯ à®ªà®£à¯à®Ÿà®²à¯]'),
-                              _tableHead('Produced (Madippu)\n[à®®à®Ÿà®¿à®ªà¯à®ªà¯ à®ªà®£à¯à®Ÿà®²à¯]'),
-                              _tableHead('Total Available\n[à®®à¯Šà®¤à¯à®¤ à®ªà®£à¯à®Ÿà®²à¯]'),
-                              _tableHead('Sales Bundles\n[à®šà¯‡à®²à¯à®¸à¯ à®ªà®£à¯à®Ÿà®²à¯]'),
-                              _tableHead('Closing Stock\n[à®®à¯Šà®¤à¯à®¤ à®‡à®°à¯à®ªà¯à®ªà¯]'),
+                              _tableHead('Brand Name\n(Brand)'),
+                              _tableHead('Opening Stock\n(Iruppu)'),
+                              _tableHead('Produced (Madippu)\n(Madippu)'),
+                              _tableHead('Total Available\n(Moththam)'),
+                              _tableHead('Sales Bundles\n(Sales)'),
+                              _tableHead('Closing Stock\n(Meedhi Iruppu)'),
                             ],
                           ),
                           for (final r in _rowControllers)
@@ -7240,7 +7240,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                               const Padding(
                                 padding: EdgeInsets.all(10),
                                 child: Text(
-                                  'TOTAL BUNDLE\n[à®®à¯Šà®¤à¯à®¤ à®ªà®£à¯à®Ÿà®²à¯]',
+                                  'TOTAL BUNDLE\n(Moththam)',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w900,
                                     fontSize: 13,
@@ -7316,14 +7316,14 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      '4. Material Inward, Issue & Closing Card [à®µà®°à®µà¯, à®µà¯†à®³à®¿à®¯à¯€à®Ÿà¯ & à®‡à®°à¯à®ªà¯à®ªà¯ à®•à®¾à®Ÿà¯ - Image 1]',
+                      '4. Material Inward, Issue & Closing Card (Varavu, Veliyedu & Iruppu - Image 1)',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: _materialInwardCtrl,
                       decoration: const InputDecoration(
-                        labelText: 'à®•à®®à¯à®ªà¯†à®©à®¿ à®®à¯†à®Ÿà¯à®Ÿà¯€à®°à®¿à®¯à®²à¯ à®µà®°à®µà¯ [Company Material Inward]',
+                        labelText: 'Company Material Inward (Varavu)',
                         hintText: 'E.g. Sivakasi Print Pack Outer Boards - 200 Bundles',
                         border: OutlineInputBorder(),
                       ),
@@ -7332,7 +7332,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                     TextField(
                       controller: _materialOutwardCtrl,
                       decoration: const InputDecoration(
-                        labelText: 'à®•à®®à¯à®ªà¯†à®©à®¿ à®®à¯†à®Ÿà¯à®Ÿà¯€à®°à®¿à®¯à®²à¯ à®µà¯†à®³à®¿à®¯à¯€à®Ÿà¯ [Company Material Outward / Issue]',
+                        labelText: 'Company Material Outward (Issue / Veliyedu)',
                         hintText: 'E.g. Issued 150 Bundles Outer Board to Line 1 Floor',
                         border: OutlineInputBorder(),
                       ),
@@ -7341,7 +7341,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                     TextField(
                       controller: _closingCardNoteCtrl,
                       decoration: const InputDecoration(
-                        labelText: 'à®‡à®°à¯à®ªà¯à®ªà¯ à®•à®¾à®Ÿà¯ / à®ªà®¿à®°à®¾à®£à¯à®Ÿà¯ [Closing Card & Brand Notes]',
+                        labelText: 'Closing Card Note (Brand & Shift Notes)',
                         hintText: 'E.g. Shift 1 all drying frames inspected and locked',
                         border: OutlineInputBorder(),
                       ),
@@ -7398,7 +7398,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Machine Output [à®ªà¯†à®Ÿà¯à®Ÿà®¿ & à®…à®Ÿà®ªà¯à®ªà¯]:',
+            'Machine Output (Petti & Adappu Frames):',
             style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF0F172A)),
           ),
           const SizedBox(height: 10),
@@ -7406,7 +7406,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
             controller: _adappuCtrl,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-              labelText: 'à®…à®Ÿà®ªà¯à®ªà¯ à®ªà®¿à®°à¯‡à®®à¯ [Adappu Frames Fed]',
+              labelText: 'Adappu Frames Fed (Machine Input)',
               border: OutlineInputBorder(),
               isDense: true,
             ),
@@ -7416,15 +7416,15 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
             controller: _totalBoxesCtrl,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-              labelText: 'à®®à¯Šà®¤à¯à®¤ à®ªà¯†à®Ÿà¯à®Ÿà®¿ [Total Matchboxes Produced]',
+                                          labelText: 'Produced (Madippu)',
               border: OutlineInputBorder(),
               isDense: true,
             ),
           ),
           const SizedBox(height: 10),
-          _autoMetricRow('à®†à®µà®°à¯‡à®œà¯ à®ªà¯†à®Ÿà¯à®Ÿà®¿ [Avg Boxes/Frame]', '${_avgBoxesPerFrame.toStringAsFixed(1)} Boxes'),
-          _autoMetricRow('à®•à¯à®°à¯‹à®¸à¯ [Gross (1 Gross = 144)]', '${_grossCount.toStringAsFixed(1)} Gross'),
-          _autoMetricRow('à®ªà®£à¯à®Ÿà®²à¯ [Bundles (1 Bdl = 600)]', '${_totalBundlesFromBoxes.toStringAsFixed(0)} Bundles', isHighlight: true),
+          _autoMetricRow('Average Boxes / Frame (Avg Petti)', '${_avgBoxesPerFrame.toStringAsFixed(1)} Boxes'),
+          _autoMetricRow('Gross Count (1 Gross = 144 Boxes)', '${_grossCount.toStringAsFixed(1)} Gross'),
+          _autoMetricRow('Produced Bundles (1 Bdl = 600 Boxes)', '${_totalBundlesFromBoxes.toStringAsFixed(0)} Bundles', isHighlight: true),
         ],
       ),
     );
@@ -7443,7 +7443,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Dipping Frame Balance Math [à®ªà®¿à®°à¯‡à®®à¯ à®‡à®°à¯à®ªà¯à®ªà¯]:',
+            'Dipping Frame Balance Math (Frame Iruppu):',
             style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF0F172A)),
           ),
           const SizedBox(height: 10),
@@ -7451,7 +7451,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
             controller: _openingFramesCtrl,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-              labelText: 'à®‡à®°à¯à®ªà¯à®ªà¯ à®ªà®¿à®°à¯‡à®®à¯ [Opening Frames]',
+              labelText: 'Opening Frames (Aaramba Iruppu)',
               border: OutlineInputBorder(),
               isDense: true,
             ),
@@ -7461,17 +7461,17 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
             controller: _dippingCtrl,
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(
-              labelText: '+ à®Ÿà®¿à®ªà¯à®ªà®¿à®™à¯ à®ªà®¿à®°à¯‡à®®à¯ [Dipping Frames Today]',
+              labelText: '+ Dipping Frames Today (Dipping Frame)',
               border: OutlineInputBorder(),
               isDense: true,
             ),
           ),
           const Divider(height: 14),
-          _autoMetricRow('= à®®à¯Šà®¤à¯à®¤à®®à¯ [Total Dipped Frames]', '${_totalDippedFrames.toStringAsFixed(0)} Frames', isHighlight: true),
+          _autoMetricRow('= Total Dipped Frames (Moththam)', '${_totalDippedFrames.toStringAsFixed(0)} Frames', isHighlight: true),
           const Divider(height: 14),
-          _autoMetricRow('- à®…à®Ÿà®ªà¯à®ªà¯ à®ªà®¿à®°à¯‡à®®à¯ [Fed to Machine]', '${_adappuFrames.toStringAsFixed(0)} Frames'),
+          _autoMetricRow('- Adappu Frames Fed (Fed to Machine)', '${_adappuFrames.toStringAsFixed(0)} Frames'),
           const SizedBox(height: 4),
-          _autoMetricRow('= à®‡à®°à¯à®ªà¯à®ªà¯ à®ªà®¿à®°à¯‡à®®à¯ [Closing Balance Frame]', '${_closingFrames.toStringAsFixed(0)} Frames', isSuccess: true),
+          _autoMetricRow('= Closing Balance Frames (Meedhi Iruppu)', '${_closingFrames.toStringAsFixed(0)} Frames', isSuccess: true),
         ],
       ),
     );
@@ -7587,7 +7587,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
                       color: Color(0xFF0F172A), size: 22),
                   SizedBox(width: 8),
                   Text(
-                    '5. Factory Daily Sheets Archive [à®¨à®¾à®Ÿà¯à®•à¯à®±à®¿à®ªà¯à®ªà¯ à®µà®°à®²à®¾à®±à¯]',
+              '5. Factory Daily Sheets Archive (History)',
                     style:
                         TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                   ),
