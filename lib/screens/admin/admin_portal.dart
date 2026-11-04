@@ -164,23 +164,64 @@ class _AdminStaffPortalState extends State<AdminStaffPortal> {
             ),
           ),
           if (isCompactMobile) ...[
-            IconButton(
-              tooltip: 'Customer Website',
-              onPressed: () => widget.store.switchRole(UserRole.customer),
-              icon: Icon(Icons.public_rounded,
-                  color: Colors.amber.shade300, size: 20),
-            ),
-            IconButton(
-              tooltip: 'Change Password',
-              onPressed: () => showChangePasswordDialog(context, widget.store),
-              icon: const Icon(Icons.key_rounded,
-                  color: Color(0xFFFDE047), size: 19),
-            ),
-            IconButton(
-              tooltip: 'Logout (${widget.store.loggedInUserName})',
-              onPressed: widget.onSwitchRoleModal,
-              icon: const Icon(Icons.logout_rounded,
-                  size: 20, color: Colors.redAccent),
+            PopupMenuButton<String>(
+              tooltip: 'More Options',
+              icon: const Icon(Icons.more_vert_rounded,
+                  color: Colors.white, size: 22),
+              color: const Color(0xFF1E293B),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              onSelected: (val) {
+                if (val == 'website') {
+                  widget.store.switchRole(UserRole.customer);
+                } else if (val == 'password') {
+                  showChangePasswordDialog(context, widget.store);
+                } else if (val == 'logout') {
+                  widget.onSwitchRoleModal();
+                }
+              },
+              itemBuilder: (ctx) => [
+                const PopupMenuItem(
+                  value: 'website',
+                  child: Row(
+                    children: [
+                      Icon(Icons.public_rounded,
+                          color: Color(0xFFFCD34D), size: 18),
+                      SizedBox(width: 10),
+                      Text('Customer Website',
+                          style: TextStyle(color: Colors.white, fontSize: 13)),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'password',
+                  child: Row(
+                    children: [
+                      Icon(Icons.key_rounded,
+                          color: Color(0xFFFDE047), size: 18),
+                      SizedBox(width: 10),
+                      Text('Change Password',
+                          style: TextStyle(color: Colors.white, fontSize: 13)),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(height: 1),
+                PopupMenuItem(
+                  value: 'logout',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.logout_rounded,
+                          color: Colors.redAccent, size: 18),
+                      const SizedBox(width: 10),
+                      Text('Logout (${widget.store.loggedInUserName})',
+                          style: const TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(width: 4),
           ] else ...[
@@ -1254,103 +1295,101 @@ class _AdminDashboardView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: hasSheet
-                            ? (isToday
-                                ? const Color(0xFFECFDF5)
-                                : const Color(0xFFEFF6FF))
-                            : Colors.amber.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.assignment_turned_in_rounded,
-                        color: hasSheet
-                            ? (isToday
-                                ? const Color(0xFF065F46)
-                                : const Color(0xFF1D4ED8))
-                            : Colors.amber.shade800,
-                        size: 24,
-                      ),
+          LayoutBuilder(
+            builder: (ctx, constraints) {
+              final isCardMobile = constraints.maxWidth < 620;
+
+              final headerIconAndText = Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: hasSheet
+                          ? (isToday
+                              ? const Color(0xFFECFDF5)
+                              : const Color(0xFFEFF6FF))
+                          : Colors.amber.shade50,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 4,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Text(
-                                isToday
-                                    ? "Today's Daily Factory Floor Sheet"
-                                    : (hasSheet
-                                        ? "Latest Daily Factory Floor Sheet (${sheet.date})"
-                                        : "Today's Daily Factory Floor Sheet"),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF0F172A),
-                                ),
+                    child: Icon(
+                      Icons.assignment_turned_in_rounded,
+                      color: hasSheet
+                          ? (isToday
+                              ? const Color(0xFF065F46)
+                              : const Color(0xFF1D4ED8))
+                          : Colors.amber.shade800,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              isToday
+                                  ? "Today's Daily Factory Floor Sheet"
+                                  : (hasSheet
+                                      ? "Latest Daily Factory Floor Sheet (${sheet!.date})"
+                                      : "Today's Daily Factory Floor Sheet"),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF0F172A),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: hasSheet
+                                    ? (isToday
+                                        ? const Color(0xFFECFDF5)
+                                        : const Color(0xFFEFF6FF))
+                                    : Colors.amber.shade100,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                hasSheet
+                                    ? (isToday ? 'Live Saved' : 'Past Entry')
+                                    : 'Pending Floor Entry',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
                                   color: hasSheet
                                       ? (isToday
-                                          ? const Color(0xFFECFDF5)
-                                          : const Color(0xFFEFF6FF))
-                                      : Colors.amber.shade100,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  hasSheet
-                                      ? (isToday ? 'Live Saved' : 'Past Entry')
-                                      : 'Pending Floor Entry',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: hasSheet
-                                        ? (isToday
-                                            ? const Color(0xFF065F46)
-                                            : const Color(0xFF1D4ED8))
-                                        : Colors.amber.shade900,
-                                  ),
+                                          ? const Color(0xFF065F46)
+                                          : const Color(0xFF1D4ED8))
+                                      : Colors.amber.shade900,
                                 ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            hasSheet
-                                ? 'Recorded by ${sheet.recordedBy} • Date: ${sheet.date} (${sheet.dayOfWeek})'
-                                : 'Floor Staff has not entered today\'s sheet ($todayStr) yet.',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              color: Colors.grey.shade700,
-                              fontWeight: FontWeight.w500,
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          hasSheet
+                              ? 'Recorded by ${sheet!.recordedBy} • Date: ${sheet.date} (${sheet.dayOfWeek})'
+                              : 'Floor Staff has not entered today\'s sheet ($todayStr) yet.',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w500,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              Wrap(
+                  ),
+                ],
+              );
+
+              final sheetActions = Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
@@ -1376,8 +1415,29 @@ class _AdminDashboardView extends StatelessWidget {
                         Text(hasSheet ? 'Open Full Sheet' : 'Enter Sheet Now'),
                   ),
                 ],
-              ),
-            ],
+              );
+
+              if (isCardMobile) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    headerIconAndText,
+                    const SizedBox(height: 14),
+                    sheetActions,
+                  ],
+                );
+              }
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: headerIconAndText),
+                  const SizedBox(width: 10),
+                  sheetActions,
+                ],
+              );
+            },
           ),
           if (hasSheet) ...[
             const Divider(height: 22),
