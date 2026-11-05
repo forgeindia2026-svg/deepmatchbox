@@ -310,19 +310,11 @@ class _HomeSectionState extends State<_HomeSection> {
                   _buildWholesaleCalculator(isMobile),
                   SizedBox(height: isMobile ? 28 : 44),
 
-                  // 6. TECHNICAL SPECIFICATIONS MATRIX TABLE
-                  _buildTechSpecsMatrix(isMobile),
-                  SizedBox(height: isMobile ? 28 : 44),
-
-                  // 7. SIVAKASI MANUFACTURING PROCESS (5-STEP ROADMAP)
+                  // 6. SIVAKASI MANUFACTURING PROCESS (5-STEP ROADMAP)
                   _buildManufacturingProcessRoadmap(isMobile),
                   SizedBox(height: isMobile ? 28 : 44),
 
-                  // 8. WHY CHOOSE DEEBA MATCH HOUSE? (6 CORE PILLARS)
-                  _buildWhyChooseUs(isMobile),
-                  SizedBox(height: isMobile ? 28 : 44),
-
-                  // 9. WHOLESALE DEALERSHIP & AGENCY NETWORK
+                  // 7. WHOLESALE DEALERSHIP & AGENCY NETWORK
                   _buildDealershipBanner(isMobile),
                   SizedBox(height: isMobile ? 28 : 44),
 
@@ -853,85 +845,6 @@ class _HomeSectionState extends State<_HomeSection> {
     );
   }
 
-  // ==================== SECTION 6: TECHNICAL SPECIFICATIONS MATRIX ====================
-  Widget _buildTechSpecsMatrix(bool isMobile) {
-    return Container(
-      padding: EdgeInsets.all(isMobile ? 18 : 28),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeading(
-            title: 'Technical Quality & Packaging Specifications',
-            subtitle: 'Standardized factory parameters strictly adhering to industrial safety standards',
-            isMobile: isMobile,
-          ),
-          const SizedBox(height: 16),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              headingRowColor: WidgetStateProperty.all(const Color(0xFFF1F5F9)),
-              columns: const [
-                DataColumn(label: Text('Specification Parameter', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Eagle Brand (Flagship)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFB91C1C)))),
-                DataColumn(label: Text('Pulli Brand (Household)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0284C7)))),
-                DataColumn(label: Text('Joker Brand (Retail Fast)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFD97706)))),
-              ],
-              rows: const [
-                DataRow(cells: [
-                  DataCell(Text('Splint Timber')),
-                  DataCell(Text('Selected Russian Aspen Wood')),
-                  DataCell(Text('Indian Poplar & Aspen Wood')),
-                  DataCell(Text('1st Grade Poplar Wood')),
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Carbonization')),
-                  DataCell(Text('100% Impregnated (Zero After-Glow)')),
-                  DataCell(Text('100% Impregnated')),
-                  DataCell(Text('Standard Impregnation')),
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Sticks Count (Rs. 1)')),
-                  DataCell(Text('40 – 42 Sticks / Box')),
-                  DataCell(Text('40 – 42 Sticks / Box')),
-                  DataCell(Text('38 – 40 Sticks / Box')),
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Sticks Count (Rs. 2)')),
-                  DataCell(Text('72 – 75 Deluxe Sticks')),
-                  DataCell(Text('70 – 72 Long Sticks')),
-                  DataCell(Text('70 Sticks / Box')),
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Side Friction Coating')),
-                  DataCell(Text('Double-Pass Red Phosphorus + Glass')),
-                  DataCell(Text('Moisture-Proof Standard Friction')),
-                  DataCell(Text('High-Strike Rough Friction')),
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Packaging Config')),
-                  DataCell(Text('1 Bundle = 600 Boxes (10 Gross)')),
-                  DataCell(Text('1 Bundle = 600 Boxes (10 Gross)')),
-                  DataCell(Text('1 Bundle = 600 Boxes (10 Gross)')),
-                ]),
-                DataRow(cells: [
-                  DataCell(Text('Master Carton Transit')),
-                  DataCell(Text('10 Bundles (6,000 Boxes) / Carton')),
-                  DataCell(Text('10 Bundles (6,000 Boxes) / Carton')),
-                  DataCell(Text('10 Bundles (6,000 Boxes) / Carton')),
-                ]),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // ==================== SECTION 7: MANUFACTURING ROADMAP ====================
   Widget _buildManufacturingProcessRoadmap(bool isMobile) {
     final steps = [
@@ -1027,75 +940,6 @@ class _HomeSectionState extends State<_HomeSection> {
           ),
         ],
       ),
-    );
-  }
-
-  // ==================== SECTION 8: WHY CHOOSE US ====================
-  Widget _buildWhyChooseUs(bool isMobile) {
-    final pillars = [
-      {'title': 'Monsoon Weatherproof', 'desc': 'Specially formulated phosphorous composition ensuring instant ignition in humid coastal belts of India.', 'icon': Icons.thunderstorm_rounded, 'color': const Color(0xFF0284C7)},
-      {'title': 'Direct Factory Margins', 'desc': 'Eliminating brokers and commission agents. Sivakasi direct pricing gives wholesale dealers highest profit margins.', 'icon': Icons.trending_up_rounded, 'color': const Color(0xFF059669)},
-      {'title': 'Zero-Ember Safety', 'desc': 'Carbonized wood splints ensure match head doesn\'t fly off or drop hazardous hot coals upon striking.', 'icon': Icons.shield_rounded, 'color': const Color(0xFFB91C1C)},
-      {'title': 'Sivakasi Transport Hub', 'desc': 'Daily lorry loadings connecting VRL, ABT, KPN, ARC, Navata & TCI for prompt 48-72h transit nationwide.', 'icon': Icons.local_shipping_rounded, 'color': const Color(0xFFD97706)},
-      {'title': 'OEM & Export Packing', 'desc': 'Custom private brand labels, specific barcoding, and container stuffings for international African & Middle East buyers.', 'icon': Icons.public_rounded, 'color': const Color(0xFF7C3AED)},
-      {'title': '100% Ethical Manufacturing', 'desc': 'Strict non-child-labor compliance, statutory wage structures, and state-certified fire & safety infrastructure.', 'icon': Icons.verified_user_rounded, 'color': const Color(0xFF0F766E)},
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeading(
-          title: 'Why Wholesalers & Distributors Choose Deeba',
-          subtitle: 'Six competitive advantages making Eagle, Pulli & Joker the fastest-moving brands in your region',
-          isMobile: isMobile,
-        ),
-        const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (ctx, box) {
-            final cardWidth = isMobile ? box.maxWidth : (box.maxWidth - 32) / 3;
-            return Wrap(
-              spacing: 16,
-              runSpacing: 14,
-              children: pillars.map((p) {
-                final c = p['color'] as Color;
-                return Container(
-                  width: cardWidth,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: c.withAlpha(20),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(p['icon'] as IconData, color: c, size: 24),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(p['title'] as String, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5)),
-                            const SizedBox(height: 4),
-                            Text(p['desc'] as String, style: const TextStyle(fontSize: 12.5, color: Colors.black54, height: 1.4)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            );
-          },
-        ),
-      ],
     );
   }
 
