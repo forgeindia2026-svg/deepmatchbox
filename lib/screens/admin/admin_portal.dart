@@ -6823,6 +6823,34 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
     showDailyPaperSlipDialog(context, sheet);
   }
 
+  String get _dayNameTamil {
+    switch (_selectedDate.weekday) {
+      case 1:
+        return 'திங்கள்';
+      case 2:
+        return 'செவ்வாய்';
+      case 3:
+        return 'புதன்';
+      case 4:
+        return 'வியாழன்';
+      case 5:
+        return 'வெள்ளி';
+      case 6:
+        return 'சனி';
+      case 7:
+        return 'ஞாயிறு';
+      default:
+        return _dayName;
+    }
+  }
+
+  String _formatQty(double val) {
+    if (val == val.roundToDouble()) {
+      return val.toInt().toString();
+    }
+    return val.toStringAsFixed(1);
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -6830,791 +6858,77 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
         final isMobile = constraints.maxWidth < 800;
 
         return SingleChildScrollView(
-          padding: EdgeInsets.all(isMobile ? 12 : 24),
+          padding: EdgeInsets.all(isMobile ? 10 : 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Top Action Header
+              // ==================== MASTER FACTORY PAPER SLIP BOX (EXACT IMAGE 2) ====================
               Container(
-                padding: EdgeInsets.all(isMobile ? 14 : 20),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.assignment_turned_in_rounded,
-                            color: Color(0xFF065F46), size: 24),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Daily Factory Production & Stock Sheet',
-                            style: TextStyle(
-                              fontSize: isMobile ? 16 : 18,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Digitized Factory Slip • Date: ${_formatDate(_selectedDate)} ($_dayName) • By ${widget.store.loggedInUserName}',
-                      style: const TextStyle(color: Colors.black54, fontSize: 12),
-                    ),
-                    const SizedBox(height: 14),
-                    if (isMobile)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFFB91C1C),
-                              side: const BorderSide(color: Color(0xFFB91C1C)),
-                              padding: const EdgeInsets.symmetric(vertical: 11),
-                            ),
-                            onPressed: _pickDate,
-                            icon: const Icon(Icons.calendar_month_rounded, size: 16),
-                            label: Text(
-                              '${_formatDate(_selectedDate)} ($_dayName)',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF065F46),
-                              side: const BorderSide(color: Color(0xFF065F46)),
-                              padding: const EdgeInsets.symmetric(vertical: 11),
-                            ),
-                            onPressed: _showPrintSlipDialog,
-                            icon: const Icon(Icons.print_rounded, size: 16),
-                            label: const Text('Preview Paper Slip'),
-                          ),
-                          const SizedBox(height: 8),
-                          FilledButton.icon(
-                            style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xFF065F46),
-                              padding: const EdgeInsets.symmetric(vertical: 11),
-                            ),
-                            onPressed: _isSaving ? null : _saveSheet,
-                            icon: _isSaving
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2, color: Colors.white),
-                                  )
-                                : const Icon(Icons.save_rounded, size: 18),
-                            label: Text(_isSaving ? 'Saving...' : 'Save Daily Sheet'),
-                          ),
-                        ],
-                      )
-                    else
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 10,
-                        children: [
-                          OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFFB91C1C),
-                              side: const BorderSide(color: Color(0xFFB91C1C)),
-                            ),
-                            onPressed: _pickDate,
-                            icon: const Icon(Icons.calendar_month_rounded, size: 16),
-                            label: Text(
-                              '${_formatDate(_selectedDate)} ($_dayName)',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: const Color(0xFF065F46),
-                              side: const BorderSide(color: Color(0xFF065F46)),
-                            ),
-                            onPressed: _showPrintSlipDialog,
-                            icon: const Icon(Icons.print_rounded, size: 16),
-                            label: const Text('Preview Paper Slip'),
-                          ),
-                          FilledButton.icon(
-                            style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xFF065F46),
-                            ),
-                            onPressed: _isSaving ? null : _saveSheet,
-                            icon: _isSaving
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2, color: Colors.white),
-                                  )
-                                : const Icon(Icons.save_rounded, size: 18),
-                            label: Text(_isSaving ? 'Saving...' : 'Save Daily Sheet'),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // ==================== SECTION 1: TWO-COLUMN FRAME & BOX METRICS ====================
-              Container(
-                padding: EdgeInsets.all(isMobile ? 14 : 20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (isMobile)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            '1. Frame & Box Volume Metrics',
-                            style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Machine Output & Dipping Frames Balance',
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              color: Colors.grey.shade600,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      )
-                    else
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Expanded(
-                            child: Text(
-                              '1. Frame & Box Volume Metrics (Machine Output & Dipping Frames)',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFECFDF5),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Text(
-                              'Daily Frame Metrics',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF065F46),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 14),
-
-                    // Side-by-Side Two Columns matching Image 2
-                    if (!isMobile)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Left Box: Machine Output Metrics
-                          Expanded(
-                            child: _buildLeftMetricsCard(),
-                          ),
-                          const SizedBox(width: 16),
-                          // Right Box: Dipping Balance Math
-                          Expanded(
-                            child: _buildRightDippingMathCard(),
-                          ),
-                        ],
-                      )
-                    else
-                      Column(
-                        children: [
-                          _buildLeftMetricsCard(),
-                          const SizedBox(height: 12),
-                          _buildRightDippingMathCard(),
-                        ],
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // ==================== SECTION 2: MADIPPU BUNDLE & COMPANY LINES (EXACT IMAGE 2) ====================
-              Container(
-                padding: EdgeInsets.all(isMobile ? 14 : 20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '2. Madippu Bundles & Company Lines (Folding Summary)',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Madippu Bundle Row (EAA, PL, JOK, TOTAL)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Madippu Bundles (Folding Bundles Produced Today):',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 12.5,
-                              color: Color(0xFF0F172A),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 10,
-                            children: [
-                              _brandBundlePill('EAA (Eagle)', _eaaBundles, const Color(0xFFB91C1C)),
-                              _brandBundlePill('PL (Pulli)', _plBundles, const Color(0xFF0284C7)),
-                              _brandBundlePill('JOK (Joker)', _jokBundles, const Color(0xFFD97706)),
-                              _brandBundlePill('TOTAL Madippu', _totalMadippuBundles, const Color(0xFF065F46), isTotal: true),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // 1. Company & 2. Company Inputs
-                    if (isMobile)
-                      Column(
-                        children: [
-                          TextField(
-                            controller: _company1Ctrl,
-                            decoration: const InputDecoration(
-                              labelText: '1. Company Line [Inward / Outward]',
-                              hintText: 'E.g. Sivakasi Print Pack - 200 Bdls',
-                              border: OutlineInputBorder(),
-                              isDense: true,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          TextField(
-                            controller: _company2Ctrl,
-                            decoration: const InputDecoration(
-                              labelText: '2. Company Line [Inward / Outward]',
-                              hintText: 'E.g. Madurai Board Mills - 150 Bdls',
-                              border: OutlineInputBorder(),
-                              isDense: true,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          TextField(
-                            controller: _companyTotalCtrl,
-                            decoration: InputDecoration(
-                              labelText: 'Total Company Bundles',
-                              hintText: '${_totalMadippuBundles.toStringAsFixed(0)} Bundles',
-                              border: const OutlineInputBorder(),
-                              isDense: true,
-                            ),
-                          ),
-                        ],
-                      )
-                    else
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: TextField(
-                              controller: _company1Ctrl,
-                              decoration: const InputDecoration(
-                                labelText: '1. Company Line [Inward / Outward]',
-                                hintText: 'E.g. Sivakasi Print Pack - 200 Bdls',
-                                border: OutlineInputBorder(),
-                                isDense: true,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            flex: 3,
-                            child: TextField(
-                              controller: _company2Ctrl,
-                              decoration: const InputDecoration(
-                                labelText: '2. Company Line [Inward / Outward]',
-                                hintText: 'E.g. Madurai Board Mills - 150 Bdls',
-                                border: OutlineInputBorder(),
-                                isDense: true,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            flex: 2,
-                            child: TextField(
-                              controller: _companyTotalCtrl,
-                              decoration: InputDecoration(
-                                labelText: 'Total Bundles',
-                                hintText: '${_totalMadippuBundles.toStringAsFixed(0)} Bundles',
-                                border: const OutlineInputBorder(),
-                                isDense: true,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // ==================== SECTION 3: MASTER BRAND STOCK RECONCILIATION TABLE ====================
-              Container(
-                padding: EdgeInsets.all(isMobile ? 14 : 20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (isMobile)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            '3. Master Brand Stock Reconciliation',
-                            style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w800),
-                          ),
-                          const SizedBox(height: 2),
-                          const Text(
-                            'Opening + Produced = Total Available - Sales = Closing Stock',
-                            style: TextStyle(fontSize: 11, color: Colors.black54),
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              'Closing Total: ${_totalClosing.toStringAsFixed(0)} Bundles',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 12,
-                                color: Color(0xFF065F46),
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    else
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  '3. Master Brand Stock Reconciliation (Brand Stock & Sales)',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                                ),
-                                Text(
-                                  'Opening + Produced (Madippu) = Total Available - Sales = Closing Stock',
-                                  style: TextStyle(fontSize: 11.5, color: Colors.black54),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              'Closing Total: ${_totalClosing.toStringAsFixed(0)} Bundles',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 12.5,
-                                color: Color(0xFF065F46),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 14),
-
-                    // MOBILE VIEW: Interactive Cards
-                    if (isMobile)
-                      Column(
-                        children: _rowControllers.map((r) {
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      '${r.brand} ${r.priceCategory}',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 15,
-                                        color: Color(0xFF0F172A),
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFECFDF5),
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(color: const Color(0xFFA7F3D0)),
-                                      ),
-                                      child: Text(
-                                        'Closing: ${r.closing.toStringAsFixed(0)} Bdl',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 12,
-                                          color: Color(0xFF065F46),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _compactMetricPill(
-                                        'Opening ',
-                                        r.openingStock.toStringAsFixed(0),
-                                        Colors.blueGrey,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: _compactMetricPill(
-                                        'Total Available',
-                                        r.available.toStringAsFixed(0),
-                                        Colors.indigo,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: TextField(
-                                        controller: r.producedCtrl,
-                                        keyboardType: TextInputType.number,
-                                        decoration: const InputDecoration(
-                                          isDense: true,
-                                          labelText: 'Produced (Madippu)',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: TextField(
-                                        controller: r.salesCtrl,
-                                        keyboardType: TextInputType.number,
-                                        decoration: const InputDecoration(
-                                          isDense: true,
-                                          labelText: 'Sales (Virpanai)',
-                                          border: OutlineInputBorder(),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      )
-                    else
-                      // DESKTOP TABLE VIEW
-                      Table(
-                        border: TableBorder.all(color: Colors.grey.shade300),
-                        columnWidths: const {
-                          0: FlexColumnWidth(1.8),
-                          1: FlexColumnWidth(1.2),
-                          2: FlexColumnWidth(1.5),
-                          3: FlexColumnWidth(1.4),
-                          4: FlexColumnWidth(1.5),
-                          5: FlexColumnWidth(1.4),
-                        },
-                        children: [
-                          TableRow(
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFF1F5F9),
-                            ),
-                            children: [
-                              _tableHead('Brand Name\n(Brand)'),
-                              _tableHead('Opening Stock\n(Iruppu)'),
-                              _tableHead('Produced (Madippu)\n(Madippu)'),
-                              _tableHead('Total Available\n(Moththam)'),
-                              _tableHead('Sales Bundles\n(Sales)'),
-                              _tableHead('Closing Stock\n(Meedhi Iruppu)'),
-                            ],
-                          ),
-                          for (final r in _rowControllers)
-                            TableRow(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(10),
-                                  child: Text(
-                                    '${r.brand} ${r.priceCategory}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 13.5,
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(10),
-                                  child: Text(
-                                    r.openingStock.toStringAsFixed(0),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(6),
-                                  child: TextField(
-                                    controller: r.producedCtrl,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      isDense: true,
-                                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                                      border: OutlineInputBorder(),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(10),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue.shade50,
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      r.available.toStringAsFixed(0),
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        color: Colors.blue.shade900,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(6),
-                                  child: TextField(
-                                    controller: r.salesCtrl,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      isDense: true,
-                                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                                      border: OutlineInputBorder(),
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(10),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFECFDF5),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      r.closing.toStringAsFixed(0),
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        color: Color(0xFF065F46),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          // Totals Row
-                          TableRow(
-                            decoration: const BoxDecoration(color: Color(0xFFF8FAFC)),
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.all(10),
-                                child: Text(
-                                  'TOTAL BUNDLE\n(Moththam)',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Text(
-                                  _totalOpening.toStringAsFixed(0),
-                                  style: const TextStyle(fontWeight: FontWeight.w900),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Text(
-                                  _totalProduced.toStringAsFixed(0),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFFD97706),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Text(
-                                  _totalAvailable.toStringAsFixed(0),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF1D4ED8),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Text(
-                                  _totalSales.toStringAsFixed(0),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFF7C3AED),
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: Text(
-                                  _totalClosing.toStringAsFixed(0),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    color: Color(0xFFB91C1C),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // ==================== SECTION 4: INWARD, OUTWARD & CLOSING CARD ====================
-              Container(
-                padding: EdgeInsets.all(isMobile ? 14 : 20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '4. Material Inward, Issue & Closing Card (Varavu, Veliyedu & Iruppu)',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _materialInwardCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Company Material Inward (Varavu)',
-                        hintText: 'E.g. Sivakasi Print Pack Outer Boards - 200 Bundles',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _materialOutwardCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Company Material Outward (Issue / Veliyedu)',
-                        hintText: 'E.g. Issued 150 Bundles Outer Board to Line 1 Floor',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _closingCardNoteCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Closing Card Note (Brand & Shift Notes)',
-                        hintText: 'E.g. Shift 1 all drying frames inspected and locked',
-                        border: OutlineInputBorder(),
-                      ),
+                  border: Border.all(color: const Color(0xFF065F46), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF065F46).withValues(alpha: 0.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // SLIP HEADER
+                    _buildSlipHeader(isMobile),
+                    const Divider(height: 1, thickness: 1.5, color: Color(0xFF065F46)),
 
-              // Save Button
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF065F46),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: _isSaving ? null : _saveSheet,
-                  icon: _isSaving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Icon(Icons.cloud_upload_rounded, size: 20),
-                  label: Text(
-                    _isSaving ? 'Saving Daily Factory Sheet...' : 'Save Daily Production Sheet',
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                  ),
+                    // SECTION 1: DUAL COLUMN SIDE-BY-SIDE (Left: Machine Output | Right: Frame Balance Math)
+                    _buildSlipDualFrameBox(isMobile),
+                    const Divider(height: 1, thickness: 1.5, color: Color(0xFF065F46)),
+
+                    // SECTION 2: MADIPPU BUNDLE & COMPANY LINES
+                    _buildSlipMadippuAndCompanySection(isMobile),
+                    const Divider(height: 1, thickness: 1.5, color: Color(0xFF065F46)),
+
+                    // SECTION 3: MASTER BRAND STOCK RECONCILIATION TABLE (Exact Image 2 Grid)
+                    _buildSlipMasterBrandTable(isMobile),
+                    const Divider(height: 1, thickness: 1.5, color: Color(0xFF065F46)),
+
+                    // SECTION 4: INWARD, OUTWARD & CLOSING CARD
+                    _buildSlipMaterialAndClosingSection(isMobile),
+                  ],
                 ),
               ),
+
+              const SizedBox(height: 18),
+
+              // SAVE BUTTON
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF065F46),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: _isSaving ? null : _saveSheet,
+                icon: _isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.cloud_upload_rounded, size: 20),
+                label: Text(
+                  _isSaving
+                      ? 'Saving Daily Factory Sheet...'
+                      : 'Save Daily Factory Sheet to MongoDB / Cloud',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+              ),
+
               const SizedBox(height: 24),
 
-              // ==================== SECTION 5: DAILY FACTORY SHEETS ARCHIVE & HISTORY ====================
+              // SECTION 5: DAILY FACTORY SHEETS ARCHIVE & HISTORY
               _buildArchiveSection(isMobile),
             ],
           ),
@@ -7623,130 +6937,694 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
     );
   }
 
-  // Left card: Machine Output
-  Widget _buildLeftMetricsCard() {
+  // ==================== SLIP COMPONENT BUILDERS (MATCHING IMAGE 2) ====================
+
+  Widget _buildSlipHeader(bool isMobile) {
     return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+      padding: EdgeInsets.all(isMobile ? 12 : 16),
+      decoration: const BoxDecoration(
+        color: Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(14),
+          topRight: Radius.circular(14),
+        ),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Machine Output (Petti & Adappu Frames):',
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF0F172A)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'DEEBA MATCH WORKS • சிவகாசி (Sivakasi)',
+                      style: TextStyle(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF065F46),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'தினசரி உற்பத்தி, ஸ்டாக் & விற்பனை கணக்கு ரசீது (Daily Factory Slip)',
+                      style: TextStyle(
+                        fontSize: isMobile ? 11 : 12,
+                        color: const Color(0xFF065F46).withValues(alpha: 0.8),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Top Right Date Box matching Image 2
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF065F46)),
+                ),
+                child: InkWell(
+                  onTap: _pickDate,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.calendar_month_rounded, size: 14, color: Color(0xFF065F46)),
+                          const SizedBox(width: 4),
+                          Text(
+                            'தேதி: ${_formatDate(_selectedDate)}',
+                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Color(0xFF065F46)),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        'நாள்: $_dayNameTamil • A.B.D',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey.shade700),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 10),
-          TextField(
-            controller: _adappuCtrl,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Adappu Frames Fed (Machine Input)',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                ),
+                child: Text(
+                  'சூப்பர்வைசர் (Supervisor): ${widget.store.loggedInUserName}',
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF065F46)),
+                ),
+              ),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF065F46),
+                  side: const BorderSide(color: Color(0xFF065F46)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: _showPrintSlipDialog,
+                icon: const Icon(Icons.print_rounded, size: 14),
+                label: const Text('Preview Paper Slip', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+              ),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF065F46),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                onPressed: _isSaving ? null : _saveSheet,
+                icon: const Icon(Icons.save_rounded, size: 14),
+                label: Text(_isSaving ? 'Saving...' : 'Save Sheet', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _totalBoxesCtrl,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-                                          labelText: 'Produced (Madippu)',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
-          ),
-          const SizedBox(height: 10),
-          _autoMetricRow('Average Boxes / Frame (Avg Petti)', '${_avgBoxesPerFrame.toStringAsFixed(1)} Boxes'),
-          _autoMetricRow('Gross Count (1 Gross = 144 Boxes)', '${_grossCount.toStringAsFixed(1)} Gross'),
-          _autoMetricRow('Produced Bundles (1 Bdl = 600 Boxes)', '${_totalBundlesFromBoxes.toStringAsFixed(0)} Bundles', isHighlight: true),
         ],
       ),
     );
   }
 
-  // Right card: Dipping Frame Stock Math
-  Widget _buildRightDippingMathCard() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Dipping Frame Balance Math (Frame Iruppu):',
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF0F172A)),
+  Widget _buildSlipDualFrameBox(bool isMobile) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minWidth: isMobile ? 540 : 0),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // LEFT COLUMN: Machine Output Metrics
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          '1. மெஷின் அவுட்புட் (Machine Output)',
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11.5, color: Color(0xFF0F172A)),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _slipInputLine('அடப்பு பிரேம் (Adappu Frame)', _adappuCtrl),
+                      _slipInputLine('மொத்த பெட்டி (Total Boxes)', _totalBoxesCtrl),
+                      const Divider(height: 10, thickness: 0.8),
+                      _slipCalcLine('ஆவரேஜ் பெட்டி (Avg Boxes/Frame)', '${_avgBoxesPerFrame.toStringAsFixed(1)} Boxes'),
+                      _slipCalcLine('குரோஸ் (Gross = 144 Boxes)', '${_grossCount.toStringAsFixed(1)} Gross'),
+                      _slipCalcLine('பண்டல் (Produced Bdl = 600)', '${_formatQty(_totalBundlesFromBoxes)} Bundles', isHighlight: true),
+                    ],
+                  ),
+                ),
+              ),
+
+              // VERTICAL GREEN DIVIDER
+              Container(width: 1.5, color: const Color(0xFF065F46)),
+
+              // RIGHT COLUMN: Dipping Frame Balance Math
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          '2. பிரேம் கணக்கு (Frame Balance Math)',
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11.5, color: Color(0xFF0F172A)),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _slipInputLine('இருப்பு பிரேம் (Opening Frames)', _openingFramesCtrl),
+                      _slipInputLine('+ டிப்பிங் பிரேம் (Dipping Today)', _dippingCtrl),
+                      const Divider(height: 10, thickness: 0.8),
+                      _slipCalcLine('= மொத்தம் (Total Dipped)', '${_totalDippedFrames.toStringAsFixed(0)} Frames', isHighlight: true),
+                      _slipCalcLine('- அடப்பு பிரேம் (Adappu Fed)', '${_adappuFrames.toStringAsFixed(0)} Frames'),
+                      _slipCalcLine('= மீதி இருப்பு பிரேம் (Closing Balance)', '${_closingFrames.toStringAsFixed(0)} Frames', isSuccess: true),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: _openingFramesCtrl,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Opening Frames (Aaramba Iruppu)',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _dippingCtrl,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: '+ Dipping Frames Today (Dipping Frame)',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
-          ),
-          const Divider(height: 14),
-          _autoMetricRow('= Total Dipped Frames (Moththam)', '${_totalDippedFrames.toStringAsFixed(0)} Frames', isHighlight: true),
-          const Divider(height: 14),
-          _autoMetricRow('- Adappu Frames Fed (Fed to Machine)', '${_adappuFrames.toStringAsFixed(0)} Frames'),
-          const SizedBox(height: 4),
-          _autoMetricRow('= Closing Balance Frames (Meedhi Iruppu)', '${_closingFrames.toStringAsFixed(0)} Frames', isSuccess: true),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _autoMetricRow(String label, String value, {bool isHighlight = false, bool isSuccess = false}) {
-    Color bg = const Color(0xFFF1F5F9);
-    Color fg = Colors.black87;
-    if (isHighlight) {
-      bg = const Color(0xFFEFF6FF);
-      fg = const Color(0xFF1D4ED8);
-    } else if (isSuccess) {
-      bg = const Color(0xFFECFDF5);
-      fg = const Color(0xFF065F46);
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(6),
-      ),
+  Widget _slipInputLine(String label, TextEditingController ctrl) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: Text(label, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-              color: fg,
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Color(0xFF1E293B)),
             ),
+          ),
+          const Text(' :  ', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black54)),
+          SizedBox(
+            width: 80,
+            height: 32,
+            child: TextField(
+              controller: ctrl,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              textAlign: TextAlign.end,
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Color(0xFF065F46)),
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: BorderSide(color: Colors.grey.shade400),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: const BorderSide(color: Color(0xFF065F46), width: 1.5),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _slipCalcLine(String label, String value, {bool isHighlight = false, bool isSuccess = false}) {
+    Color valColor = const Color(0xFF0F172A);
+    if (isHighlight) valColor = const Color(0xFF1D4ED8);
+    if (isSuccess) valColor = const Color(0xFF065F46);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: (isHighlight || isSuccess) ? FontWeight.w800 : FontWeight.w600,
+                color: (isHighlight || isSuccess) ? const Color(0xFF0F172A) : Colors.black87,
+              ),
+            ),
+          ),
+          const Text(' :  ', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black54)),
+          SizedBox(
+            width: 80,
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 12.5,
+                color: valColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSlipMadippuAndCompanySection(bool isMobile) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      color: const Color(0xFFFBFDFB),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Madippu Row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                'மடிப்பு பண்டல் (Madippu):',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Color(0xFF065F46)),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    _brandBundlePill('EAA (Eagle)', _eaaBundles, const Color(0xFFB91C1C)),
+                    _brandBundlePill('PL (Pulli)', _plBundles, const Color(0xFF0284C7)),
+                    _brandBundlePill('JOK (Joker 2ரூ)', _jokBundles, const Color(0xFFD97706)),
+                    _brandBundlePill('TOTAL', _totalMadippuBundles, const Color(0xFF065F46), isTotal: true),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // 1. Company Line
+          Row(
+            children: [
+              const SizedBox(
+                width: 90,
+                child: Text('1. கம்பேனி :', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+              ),
+              Expanded(
+                child: SizedBox(
+                  height: 34,
+                  child: TextField(
+                    controller: _company1Ctrl,
+                    style: const TextStyle(fontSize: 12.5),
+                    decoration: const InputDecoration(
+                      hintText: 'கம்பேனி பெயர் & பண்டல் (E.g. Sivakasi Print Pack - 105 Bdls)',
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          // 2. Company Line
+          Row(
+            children: [
+              const SizedBox(
+                width: 90,
+                child: Text('2. கம்பேனி :', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+              ),
+              Expanded(
+                child: SizedBox(
+                  height: 34,
+                  child: TextField(
+                    controller: _company2Ctrl,
+                    style: const TextStyle(fontSize: 12.5),
+                    decoration: const InputDecoration(
+                      hintText: 'கம்பேனி பெயர் & பண்டல் (E.g. Madurai Board Mills - 150 Bdls)',
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSlipMasterBrandTable(bool isMobile) {
+    return Container(
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            color: const Color(0xFFF0FDF4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '3. பிராண்டு வாரியாக ஸ்டாக் & விற்பனை கணக்கு (Brand Stock & Sales Ledger)',
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Color(0xFF065F46)),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: const Color(0xFF065F46)),
+                  ),
+                  child: Text(
+                    'மீதி இருப்பு: ${_formatQty(_totalClosing)} Bdls',
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11.5, color: Color(0xFF065F46)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: isMobile ? 580 : 0),
+              child: Table(
+                border: TableBorder.all(color: const Color(0xFF065F46).withValues(alpha: 0.35)),
+                columnWidths: const {
+                  0: FlexColumnWidth(1.7), // பிராண்டு
+                  1: FlexColumnWidth(1.1), // இருப்பு பண்டல்
+                  2: FlexColumnWidth(1.4), // மடிப்பு பண்டல்
+                  3: FlexColumnWidth(1.3), // மொத்த பண்டல்
+                  4: FlexColumnWidth(1.4), // சேல்ஸ் பண்டல்
+                  5: FlexColumnWidth(1.3), // மொத்த இருப்பு
+                },
+                children: [
+                  // HEADER ROW MATCHING IMAGE 2
+                  TableRow(
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFECFDF5),
+                    ),
+                    children: [
+                      _tableHeadSlip('பிராண்டு\n(Brand)'),
+                      _tableHeadSlip('இருப்பு பண்டல்\n(Opening)'),
+                      _tableHeadSlip('மடிப்பு பண்டல்\n(Produced)'),
+                      _tableHeadSlip('மொத்த பண்டல்\n(Total Available)'),
+                      _tableHeadSlip('சேல்ஸ் பண்டல்\n(Sales)'),
+                      _tableHeadSlip('மொத்த இருப்பு\n(Closing Stock)'),
+                    ],
+                  ),
+                  // BRAND ROWS
+                  for (final r in _rowControllers)
+                    TableRow(
+                      children: [
+                        // Brand name
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          child: Text(
+                            '${r.brand.toUpperCase()} ${r.priceCategory}',
+                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Color(0xFF0F172A)),
+                          ),
+                        ),
+                        // Opening stock
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          child: Text(
+                            _formatQty(r.openingStock),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+                          ),
+                        ),
+                        // Madippu (Produced) Input
+                        Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: SizedBox(
+                            height: 32,
+                            child: TextField(
+                              controller: r.producedCtrl,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5, color: Color(0xFFD97706)),
+                              decoration: const InputDecoration(
+                                isDense: true,
+                                contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Total Available
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              _formatQty(r.available),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Color(0xFF1D4ED8)),
+                            ),
+                          ),
+                        ),
+                        // Sales Input
+                        Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: SizedBox(
+                            height: 32,
+                            child: TextField(
+                              controller: r.salesCtrl,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5, color: Color(0xFF7C3AED)),
+                              decoration: const InputDecoration(
+                                isDense: true,
+                                contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Closing Stock
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFECFDF5),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              _formatQty(r.closing),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5, color: Color(0xFF065F46)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  // TOTAL ROW (MATCHING IMAGE 2 "TOTAL BUNDLE")
+                  TableRow(
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFF1F5F9),
+                    ),
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        child: Text(
+                          'TOTAL BUNDLE\n(மொத்தம்)',
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Color(0xFF065F46)),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        child: Text(
+                          _formatQty(_totalOpening),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        child: Text(
+                          _formatQty(_totalProduced),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5, color: Color(0xFFD97706)),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        child: Text(
+                          _formatQty(_totalAvailable),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5, color: Color(0xFF1D4ED8)),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        child: Text(
+                          _formatQty(_totalSales),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12.5, color: Color(0xFF7C3AED)),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                        child: Text(
+                          _formatQty(_totalClosing),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Color(0xFF065F46)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tableHeadSlip(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontWeight: FontWeight.w900,
+          fontSize: 11,
+          color: Color(0xFF065F46),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSlipMaterialAndClosingSection(bool isMobile) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: const BoxDecoration(
+        color: Color(0xFFFBFDFB),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(14),
+          bottomRight: Radius.circular(14),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const SizedBox(
+                width: 170,
+                child: Text(
+                  'கம்பேனி மெட்டீரியல் வரவு :',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5, color: Color(0xFF1E293B)),
+                ),
+              ),
+              Expanded(
+                child: SizedBox(
+                  height: 34,
+                  child: TextField(
+                    controller: _materialInwardCtrl,
+                    style: const TextStyle(fontSize: 12),
+                    decoration: const InputDecoration(
+                      hintText: 'Varavu: Outer boards, chemical etc.',
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const SizedBox(
+                width: 170,
+                child: Text(
+                  'கம்பேனி மெட்டீரியல் வெளியே :',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5, color: Color(0xFF1E293B)),
+                ),
+              ),
+              Expanded(
+                child: SizedBox(
+                  height: 34,
+                  child: TextField(
+                    controller: _materialOutwardCtrl,
+                    style: const TextStyle(fontSize: 12),
+                    decoration: const InputDecoration(
+                      hintText: 'Veliyedu: Issued to floor line',
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const SizedBox(
+                width: 170,
+                child: Text(
+                  'இருப்பு கார்டு / பிராண்டு குறிப்பு :',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 11.5, color: Color(0xFF1E293B)),
+                ),
+              ),
+              Expanded(
+                child: SizedBox(
+                  height: 34,
+                  child: TextField(
+                    controller: _closingCardNoteCtrl,
+                    style: const TextStyle(fontSize: 12),
+                    decoration: const InputDecoration(
+                      hintText: 'Closing Card note, Shift notes',
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -7755,7 +7633,7 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
 
   Widget _brandBundlePill(String brand, double bundles, Color color, {bool isTotal = false}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: isTotal ? 0.15 : 0.08),
         borderRadius: BorderRadius.circular(8),
@@ -7764,47 +7642,13 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(brand, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
-          const SizedBox(height: 2),
+          Text(brand, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: color)),
+          const SizedBox(height: 1),
           Text(
-            '${bundles.toStringAsFixed(0)} Bundles',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: color),
+            '${_formatQty(bundles)} Bdls',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: color),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _compactMetricPill(String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color)),
-          ),
-          const SizedBox(width: 4),
-          Text(value, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: color)),
-        ],
-      ),
-    );
-  }
-
-  Widget _tableHead(String text) {
-    return Padding(
-      padding: const EdgeInsets.all(10),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontWeight: FontWeight.w900,
-          fontSize: 11.5,
-          color: Color(0xFF0F172A),
-        ),
       ),
     );
   }
