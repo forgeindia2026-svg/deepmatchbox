@@ -1640,8 +1640,40 @@ class _CategoryBannerCard extends StatelessWidget {
 }
 
 // ============================================================================
-// 2. PRODUCTS & PRODUCT DETAILS SECTION
+// 2. PRODUCTS & PRODUCT DETAILS SECTION (2-COLUMN E-COMMERCE GRID)
 // ============================================================================
+class _CatalogMatchItem {
+  final String id;
+  final String brand;
+  final String category; // 'Rs. 1' or 'Rs. 2'
+  final String fullName;
+  final String typeTag;
+  final String sticksCount;
+  final double factoryBundlePrice;
+  final double mrpBundlePrice;
+  final double perBoxPrice;
+  final String discountBadge;
+  final Color brandColor;
+  final String description;
+
+  const _CatalogMatchItem({
+    required this.id,
+    required this.brand,
+    required this.category,
+    required this.fullName,
+    required this.typeTag,
+    required this.sticksCount,
+    required this.factoryBundlePrice,
+    required this.mrpBundlePrice,
+    required this.perBoxPrice,
+    required this.discountBadge,
+    required this.brandColor,
+    required this.description,
+  });
+
+  double get savings => mrpBundlePrice - factoryBundlePrice;
+}
+
 class _ProductsSection extends StatefulWidget {
   final DeebaStore store;
   final void Function(String brand, String category) onOrderProduct;
@@ -1656,167 +1688,323 @@ class _ProductsSection extends StatefulWidget {
 }
 
 class _ProductsSectionState extends State<_ProductsSection> {
-  String _selectedCategoryFilter = 'All';
+  final _searchCtrl = TextEditingController();
+  String _selectedFilter = 'All';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  List<_CatalogMatchItem> _getAllItems() {
+    final List<_CatalogMatchItem> items = [];
+    for (final prod in widget.store.products) {
+      if (!prod.isActive) continue;
+      final brand = prod.name;
+      final brandColor = prod.name.toLowerCase().contains('eagle')
+          ? const Color(0xFFB91C1C)
+          : prod.name.toLowerCase().contains('pulli')
+              ? const Color(0xFFBE185D)
+              : const Color(0xFFD97706);
+
+      for (final cat in prod.priceCategories) {
+        final factoryPrice = prod.bundlePriceByCategory[cat] ?? (cat == 'Rs. 1' ? 450.0 : 840.0);
+        final mrp = cat == 'Rs. 1' ? 600.0 : 1200.0;
+        final sticks = cat == 'Rs. 1' ? '40 Sticks / Box' : '75 Sticks / Box';
+        final discount = cat == 'Rs. 1' ? '25% OFF' : '30% OFF';
+        final typeTag = cat == 'Rs. 1' ? 'SAFETY MATCHES (40S)' : 'JUMBO KITCHEN (75S)';
+
+        items.add(
+          _CatalogMatchItem(
+            id: '${prod.id}-$cat',
+            brand: brand,
+            category: cat,
+            fullName: '${brand.toUpperCase()} - $cat',
+            typeTag: typeTag,
+            sticksCount: sticks,
+            factoryBundlePrice: factoryPrice,
+            mrpBundlePrice: mrp,
+            perBoxPrice: factoryPrice / 600.0,
+            discountBadge: discount,
+            brandColor: brandColor,
+            description: prod.description,
+          ),
+        );
+      }
+    }
+    return items;
+  }
+
+  void _showItemDetailsDialog(BuildContext context, _CatalogMatchItem item) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: item.brandColor.withAlpha(25),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.local_fire_department_rounded, color: item.brandColor, size: 22),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                item.fullName,
+                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(item.description, style: const TextStyle(fontSize: 13, height: 1.4)),
+            const Divider(height: 20),
+            _dialogRow('Brand', item.brand),
+            _dialogRow('Variant', item.category),
+            _dialogRow('Sticks Per Box', item.sticksCount),
+            _dialogRow('Bundle Packing', '600 Boxes (10 Pack × 60)'),
+            _dialogRow('Wholesale Price', '₹${item.factoryBundlePrice.toStringAsFixed(0)} / Bundle'),
+            _dialogRow('Retail MRP', '₹${item.mrpBundlePrice.toStringAsFixed(0)} / Bundle'),
+            _dialogRow('Your Savings', '₹${item.savings.toStringAsFixed(0)} (₹${item.perBoxPrice.toStringAsFixed(2)} / Box)'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1D4ED8),
+              foregroundColor: Colors.white,
+            ),
+            icon: const Icon(Icons.shopping_cart_outlined, size: 16),
+            label: Text('Book ${item.category}'),
+            onPressed: () {
+              Navigator.pop(ctx);
+              widget.onOrderProduct(item.brand, item.category);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dialogRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.black54, fontSize: 12.5)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5)),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final products = widget.store.products.where((p) {
-      if (!p.isActive) return false;
-      if (_selectedCategoryFilter == 'All') return true;
-      return p.priceCategories.contains(_selectedCategoryFilter);
+    final allItems = _getAllItems();
+    final query = _searchCtrl.text.trim().toLowerCase();
+
+    final filtered = allItems.where((item) {
+      if (query.isNotEmpty) {
+        final match = item.brand.toLowerCase().contains(query) ||
+            item.fullName.toLowerCase().contains(query) ||
+            item.category.toLowerCase().contains(query);
+        if (!match) return false;
+      }
+
+      if (_selectedFilter == 'Eagle') return item.brand == 'Eagle';
+      if (_selectedFilter == 'Pulli') return item.brand == 'Pulli';
+      if (_selectedFilter == 'Joker') return item.brand == 'Joker';
+      if (_selectedFilter == 'Rs. 1') return item.category == 'Rs. 1';
+      if (_selectedFilter == 'Rs. 2') return item.category == 'Rs. 2';
+      return true;
     }).toList();
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final isMobile = constraints.maxWidth < 640;
+        final isTablet = constraints.maxWidth >= 640 && constraints.maxWidth < 960;
+        final columns = isMobile ? 2 : (isTablet ? 3 : 4);
 
         return SingleChildScrollView(
           padding: EdgeInsets.symmetric(
-            horizontal: isMobile ? 14 : 28,
-            vertical: isMobile ? 16 : 24,
+            horizontal: isMobile ? 12 : 24,
+            vertical: 12,
           ),
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 1180),
+              constraints: const BoxConstraints(maxWidth: 1140),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Premium Section Header
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(isMobile ? 18 : 24),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha(25),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFD97706).withAlpha(40),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: const Color(0xFFFBBF24)),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.verified_rounded, size: 14, color: Color(0xFFFBBF24)),
-                                  SizedBox(width: 5),
-                                  Text(
-                                    'Sivakasi Direct Factory Wholesale',
-                                    style: TextStyle(
-                                      color: Color(0xFFFBBF24),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (!isMobile)
-                              const Text(
-                                '600 Boxes / Master Bundle',
-                                style: TextStyle(
-                                  color: Color(0xFF94A3B8),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Our Safety Matchbox Brands',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Premium carbonized safety matches engineered for instant ignition, damp-resistance, and smooth strike across Tamil Nadu and South India.',
-                          style: TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 13,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Category Filter Chips
+                  // 1. TOP HEADER: "Products - ALL MATCHES [6]   [Clear]"
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Select Category:',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF475569),
-                        ),
-                      ),
-                      Wrap(
-                        spacing: 8,
+                      Row(
                         children: [
-                          for (final filter in ['All', ...widget.store.priceCategories])
-                            ChoiceChip(
-                              label: Text(filter == 'All' ? 'All Brands' : '$filter Matches'),
-                              selected: _selectedCategoryFilter == filter,
-                              selectedColor: const Color(0xFFB91C1C),
-                              labelStyle: TextStyle(
-                                color: _selectedCategoryFilter == filter ? Colors.white : const Color(0xFF1E293B),
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12,
-                              ),
-                              onSelected: (_) => setState(() => _selectedCategoryFilter = filter),
+                          const Text(
+                            'Products - SAFETY MATCHES',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF0F172A),
+                              letterSpacing: -0.2,
                             ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFDBEAFE),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '${filtered.length}',
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF1E40AF),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
+                      if (_searchCtrl.text.isNotEmpty || _selectedFilter != 'All')
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _searchCtrl.clear();
+                              _selectedFilter = 'All';
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: const Color(0xFFCBD5E1)),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.cancel_outlined, size: 13, color: Color(0xFF64748B)),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Clear',
+                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF64748B)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                     ],
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 10),
 
-                  // Responsive Cards Layout
-                  LayoutBuilder(
-                    builder: (ctx, box) {
-                      final cardWidth = box.maxWidth < 740 ? box.maxWidth : (box.maxWidth - 40) / 3;
-                      return Wrap(
-                        spacing: 20,
-                        runSpacing: 20,
-                        children: products
-                            .map(
-                              (p) => _ModernProductCardWidget(
-                                width: cardWidth,
-                                product: p,
-                                store: widget.store,
-                                onOrderNow: widget.onOrderProduct,
-                              ),
-                            )
-                            .toList(),
-                      );
-                    },
+                  // 2. SEARCH INPUT BOX
+                  Container(
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: const Color(0xFFCBD5E1)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(6),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _searchCtrl,
+                      style: const TextStyle(fontSize: 13),
+                      decoration: InputDecoration(
+                        hintText: 'Search matchbox brand, Rs. 1, Rs. 2, sticks...',
+                        hintStyle: const TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
+                        prefixIcon: const Icon(Icons.search, size: 18, color: Color(0xFF64748B)),
+                        suffixIcon: _searchCtrl.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 16),
+                                onPressed: () => setState(() => _searchCtrl.clear()),
+                              )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                      onChanged: (_) => setState(() {}),
+                    ),
                   ),
+                  const SizedBox(height: 10),
+
+                  // 3. HORIZONTAL FILTER CHIPS
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: ['All', 'Eagle', 'Pulli', 'Joker', 'Rs. 1', 'Rs. 2'].map((f) {
+                        final isSel = _selectedFilter == f;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: ChoiceChip(
+                            label: Text(f == 'All' ? 'All (${allItems.length})' : f),
+                            selected: isSel,
+                            selectedColor: const Color(0xFF1D4ED8),
+                            labelStyle: TextStyle(
+                              color: isSel ? Colors.white : const Color(0xFF334155),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11,
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                            onSelected: (val) {
+                              if (val) setState(() => _selectedFilter = f);
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // 4. 2-COLUMN E-COMMERCE GRID
+                  if (filtered.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(40),
+                      alignment: Alignment.center,
+                      child: const Column(
+                        children: [
+                          Icon(Icons.search_off_rounded, size: 40, color: Color(0xFF94A3B8)),
+                          SizedBox(height: 8),
+                          Text('No matchbox products match your search'),
+                        ],
+                      ),
+                    )
+                  else
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: filtered.length,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: columns,
+                        crossAxisSpacing: isMobile ? 10 : 16,
+                        mainAxisSpacing: isMobile ? 12 : 16,
+                        childAspectRatio: isMobile ? 0.54 : 0.65,
+                      ),
+                      itemBuilder: (ctx, idx) {
+                        final item = filtered[idx];
+                        return _buildEcommerceGridCard(context, item, isMobile);
+                      },
+                    ),
                 ],
               ),
             ),
@@ -1825,198 +2013,206 @@ class _ProductsSectionState extends State<_ProductsSection> {
       },
     );
   }
-}
 
-typedef _ProductCardWidget = _ModernProductCardWidget;
-
-// ==================== MODERN REDESIGNED PRODUCT CARD ====================
-class _ModernProductCardWidget extends StatefulWidget {
-  final double width;
-  final ProductItem product;
-  final DeebaStore store;
-  final void Function(String brand, String category) onOrderNow;
-
-  const _ModernProductCardWidget({
-    required this.width,
-    required this.product,
-    required this.store,
-    required this.onOrderNow,
-  });
-
-  @override
-  State<_ModernProductCardWidget> createState() => _ModernProductCardWidgetState();
-}
-
-class _ModernProductCardWidgetState extends State<_ModernProductCardWidget> {
-  late String _selectedCategory;
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedCategory = widget.product.priceCategories.first;
-  }
-
-  Color get _brandPrimaryColor {
-    final name = widget.product.name.toLowerCase();
-    if (name.contains('eagle')) return const Color(0xFFB91C1C); // Crimson
-    if (name.contains('pulli')) return const Color(0xFFBE185D); // Rose Ruby
-    return const Color(0xFFD97706); // Amber Fire for Joker
-  }
-
-  Color get _brandDarkColor {
-    final name = widget.product.name.toLowerCase();
-    if (name.contains('eagle')) return const Color(0xFF7F1D1D);
-    if (name.contains('pulli')) return const Color(0xFF831843);
-    return const Color(0xFF92400E);
-  }
-
-  String get _badgeText {
-    final name = widget.product.name.toLowerCase();
-    if (name.contains('eagle')) return '★ BESTSELLER • WHOLESALE #1';
-    if (name.contains('pulli')) return '♥ HOUSEHOLD FAVORITE';
-    return '⚡ FASTEST MOVING';
-  }
-
-  String get _brandSubtitle {
-    final name = widget.product.name.toLowerCase();
-    if (name.contains('eagle')) return 'Premium Carbonized Safety Matches';
-    if (name.contains('pulli')) return 'Household & Kitchen Matches';
-    return 'High-Strike Retail & Petty Store Matches';
-  }
-
-  double get _currentPrice {
-    return widget.product.bundlePriceByCategory[_selectedCategory] ?? 450.0;
-  }
-
-  double get _pricePerBox {
-    return _currentPrice / 600.0;
-  }
-
-  String get _sticksPerBox {
-    return _selectedCategory == 'Rs. 1' ? '40 Sticks' : '75 Jumbo Sticks';
-  }
-
-  void _showProductDetailsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: _brandPrimaryColor.withAlpha(25),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(Icons.local_fire_department_rounded, color: _brandPrimaryColor, size: 24),
+  // Exact card structure matching the user's reference image
+  Widget _buildEcommerceGridCard(BuildContext context, _CatalogMatchItem item, bool isMobile) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFDCE7F5), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(8),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. PRODUCT IMAGE AREA WITH YELLOW DISCOUNT BADGE
+          Container(
+            height: isMobile ? 115 : 135,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFBF8F3),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFF1F5F9)),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${widget.product.name} Safety Matches',
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
+            child: Stack(
+              children: [
+                // Centered 3D Matchbox Mockup Graphic
+                Center(
+                  child: _buildMatchbox3DBox(item),
+                ),
+
+                // Top-Left Yellow Badge (e.g. "25% OFF")
+                Positioned(
+                  top: 6,
+                  left: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFBBF24),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      item.discountBadge,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 9.5,
+                        color: Color(0xFF78350F),
+                      ),
+                    ),
                   ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 7),
+
+          // 2. CATEGORY PILL (Light Blue)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFFDBEAFE)),
+            ),
+            child: Text(
+              item.typeTag,
+              style: const TextStyle(
+                color: Color(0xFF1D4ED8),
+                fontSize: 8.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.2,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // 3. PRODUCT TITLE
+          Text(
+            item.fullName,
+            style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF0F172A),
+              letterSpacing: -0.2,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+
+          // 4. PRICE ROW (Bold Blue + Strikethrough MRP)
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                'Rs. ${item.factoryBundlePrice.toInt()}',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF1D4ED8),
+                  letterSpacing: -0.3,
+                ),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                'Rs. ${item.mrpBundlePrice.toInt()}',
+                style: const TextStyle(
+                  fontSize: 10.5,
+                  decoration: TextDecoration.lineThrough,
+                  color: Color(0xFF94A3B8),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+
+          // 5. GREEN SAVINGS PILL
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: const Color(0xFFDCFCE7),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              'You save Rs. ${item.savings.toInt()}',
+              style: const TextStyle(
+                color: Color(0xFF15803D),
+                fontSize: 9.5,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          const Spacer(),
+
+          // 6. BUTTON 1: VIEW DETAILS (White outlined)
+          SizedBox(
+            width: double.infinity,
+            height: 28,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.zero,
+                side: const BorderSide(color: Color(0xFF93C5FD)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              onPressed: () => _showItemDetailsDialog(context, item),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.visibility_outlined, size: 12, color: Color(0xFF1D4ED8)),
+                  SizedBox(width: 4),
                   Text(
-                    widget.product.productType,
-                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+                    'View Details',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1D4ED8),
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 460),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.product.description,
-                  style: const TextStyle(height: 1.45, fontSize: 13.5),
-                ),
-                const SizedBox(height: 14),
-                const Divider(),
-                _detailRow('Brand Name', widget.product.name),
-                _detailRow('Product Type', widget.product.productType),
-                _detailRow('Available Options', widget.product.priceCategories.join(', ')),
-                _detailRow('Sticks Count', widget.product.sticksPerBox),
-                _detailRow('Bundle Packing', widget.product.boxesPerBundle),
-                const Divider(),
-                const Text(
-                  'Wholesale Bundle Pricing:',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                ),
-                const SizedBox(height: 8),
-                for (final cat in widget.product.priceCategories)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('$cat Category Bundle:'),
-                        Text(
-                          '₹${(widget.product.bundlePriceByCategory[cat] ?? 450).toStringAsFixed(0)} / Bundle',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            color: _brandPrimaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
-          ),
-          for (final cat in widget.product.priceCategories)
-            FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: _brandPrimaryColor,
-              ),
-              onPressed: () {
-                Navigator.pop(ctx);
-                widget.onOrderNow(widget.product.name, cat);
-              },
-              child: Text('Order $cat'),
-            ),
-        ],
-      ),
-    );
-  }
+          const SizedBox(height: 4),
 
-  Widget _detailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+          // 7. BUTTON 2: ADD TO CART / ORDER (Solid Royal Blue)
           SizedBox(
-            width: 140,
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.black54,
-                fontSize: 12.5,
+            width: double.infinity,
+            height: 30,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1D4ED8),
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.zero,
+                elevation: 1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 12.5,
+              onPressed: () => widget.onOrderProduct(item.brand, item.category),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.shopping_cart_outlined, size: 12),
+                  SizedBox(width: 4),
+                  Text(
+                    'Add to Cart',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                  ),
+                ],
               ),
             ),
           ),
@@ -2025,454 +2221,63 @@ class _ModernProductCardWidgetState extends State<_ModernProductCardWidget> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
+  // 3D Sivakasi Matchbox Miniature Mockup
+  Widget _buildMatchbox3DBox(_CatalogMatchItem item) {
     return Container(
-      width: widget.width,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(12),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 1. BRAND HERO HEADER WITH 3D MATCHBOX PACKAGING
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
-              gradient: LinearGradient(
-                colors: [_brandDarkColor, _brandPrimaryColor],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Tag
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withAlpha(70),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.white24),
-                      ),
-                      child: Text(
-                        _badgeText,
-                        style: const TextStyle(
-                          color: Color(0xFFFDE68A),
-                          fontWeight: FontWeight.w800,
-                          fontSize: 10,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ),
-                    const Row(
-                      children: [
-                        Icon(Icons.star_rounded, size: 14, color: Color(0xFFFBBF24)),
-                        SizedBox(width: 2),
-                        Text(
-                          '4.9 (500+ Dealers)',
-                          style: TextStyle(color: Colors.white, fontSize: 10.5, fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                // Matchbox 3D Pack + Brand Title Row
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Realistic Sivakasi 3D Matchbox Mockup Graphic
-                    _buildRealisticMatchboxGraphic(),
-                    const SizedBox(width: 14),
-
-                    // Title & Specs
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${widget.product.name} Matches',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.4,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _brandSubtitle,
-                            style: const TextStyle(
-                              color: Color(0xFFF1F5F9),
-                              fontSize: 11.5,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withAlpha(35),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'Direct Lorry Load Available',
-                              style: TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.w700),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // 2. CARD BODY & INTERACTIVE CONTROLS
-          Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Interactive Category Switcher (Rs. 1 / Rs. 2)
-                const Text(
-                  'Choose Matchbox Size / Variant:',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF64748B),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    children: widget.product.priceCategories.map((cat) {
-                      final isSelected = _selectedCategory == cat;
-                      return Expanded(
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () {
-                            setState(() {
-                              _selectedCategory = cat;
-                            });
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 180),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isSelected ? Colors.white : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color: Colors.black.withAlpha(15),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 1),
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  cat == 'Rs. 1' ? 'Rs. 1 Regular' : 'Rs. 2 Jumbo',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                    color: isSelected ? _brandPrimaryColor : const Color(0xFF475569),
-                                  ),
-                                ),
-                                Text(
-                                  cat == 'Rs. 1' ? '40 Sticks / Box' : '75 Sticks / Box',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: isSelected ? const Color(0xFF0F172A) : const Color(0xFF94A3B8),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const SizedBox(height: 14),
-
-                // Live Wholesale Price & Economics Card
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Wholesale Bundle Rate:',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF64748B),
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.baseline,
-                                textBaseline: TextBaseline.alphabetic,
-                                children: [
-                                  Text(
-                                    '₹${_currentPrice.toStringAsFixed(0)}',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w900,
-                                      color: _brandPrimaryColor,
-                                      letterSpacing: -0.5,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  const Text(
-                                    '/ Bundle',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFF64748B),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFDCFCE7),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              'Only ₹${_pricePerBox.toStringAsFixed(2)} / Box',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF15803D),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Divider(height: 16, thickness: 0.8),
-
-                      // Wholesale Box Packing Breakdown
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildEconomyPill('600 Boxes', '10 Pack × 60', Icons.inventory_2_outlined),
-                          _buildEconomyPill(_sticksPerBox, 'Carbonized', Icons.local_fire_department_outlined),
-                          _buildEconomyPill('25% Margin', 'Retail Profit', Icons.trending_up_rounded),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-
-                // Feature Highlights
-                const Row(
-                  children: [
-                    Icon(Icons.check_circle_rounded, size: 14, color: Color(0xFF16A34A)),
-                    SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        '100% Moisture Proof Head • Damp Weather Tested',
-                        style: TextStyle(fontSize: 11.5, color: Color(0xFF334155), fontWeight: FontWeight.w500),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 5),
-                const Row(
-                  children: [
-                    Icon(Icons.check_circle_rounded, size: 14, color: Color(0xFF16A34A)),
-                    SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        'Instant Ignition Side Friction Striker Coated',
-                        style: TextStyle(fontSize: 11.5, color: Color(0xFF334155), fontWeight: FontWeight.w500),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Action Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF334155),
-                          side: const BorderSide(color: Color(0xFFCBD5E1)),
-                          padding: const EdgeInsets.symmetric(vertical: 13),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () => _showProductDetailsDialog(context),
-                        child: const Text('Details', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5)),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      flex: 3,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _brandPrimaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 13),
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        icon: const Icon(Icons.shopping_bag_outlined, size: 16),
-                        label: Text(
-                          'Order $_selectedCategory',
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-                        ),
-                        onPressed: () => widget.onOrderNow(
-                          widget.product.name,
-                          _selectedCategory,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEconomyPill(String title, String subtitle, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, size: 14, color: const Color(0xFF64748B)),
-        const SizedBox(width: 4),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF0F172A),
-              ),
-            ),
-            Text(
-              subtitle,
-              style: const TextStyle(fontSize: 9.5, color: Color(0xFF64748B)),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  // Realistic Sivakasi 3D Matchbox Mockup Graphic with authentic striker strip
-  Widget _buildRealisticMatchboxGraphic() {
-    return Container(
-      width: 72,
-      height: 94,
+      width: 58,
+      height: 74,
       decoration: BoxDecoration(
         color: const Color(0xFFFEF3C7),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white, width: 2),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(50),
-            blurRadius: 8,
-            offset: const Offset(2, 4),
+            color: Colors.black.withAlpha(35),
+            blurRadius: 6,
+            offset: const Offset(1, 3),
           ),
         ],
       ),
       child: Stack(
         children: [
-          // Matchbox Main Face
           Padding(
-            padding: const EdgeInsets.all(4),
+            padding: const EdgeInsets.all(3),
             child: Container(
               decoration: BoxDecoration(
                 color: const Color(0xFFFDE68A),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: const Color(0xFFD97706), width: 1),
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(color: const Color(0xFFD97706), width: 0.8),
               ),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(4),
+                      padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
-                        color: _brandPrimaryColor,
+                        color: item.brandColor,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.local_fire_department_rounded,
                         color: Color(0xFFFDE68A),
-                        size: 20,
+                        size: 15,
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 2),
                     Text(
-                      widget.product.name.toUpperCase(),
+                      item.brand.toUpperCase(),
                       style: TextStyle(
-                        color: _brandDarkColor,
+                        color: item.brandColor,
                         fontWeight: FontWeight.w900,
-                        fontSize: 10,
-                        letterSpacing: 0.5,
+                        fontSize: 8.5,
+                        letterSpacing: 0.4,
                       ),
                     ),
-                    const Text(
-                      'MATCHES',
-                      style: TextStyle(
-                        color: Color(0xFF92400E),
+                    Text(
+                      item.category,
+                      style: const TextStyle(
+                        color: Color(0xFF78350F),
                         fontWeight: FontWeight.w800,
                         fontSize: 7,
                       ),
@@ -2482,21 +2287,152 @@ class _ModernProductCardWidgetState extends State<_ModernProductCardWidget> {
               ),
             ),
           ),
-
-          // Brown Friction Striker Strip along left edge
+          // Brown side striker strip
           Positioned(
             left: 0,
-            top: 10,
-            bottom: 10,
+            top: 8,
+            bottom: 8,
             child: Container(
-              width: 5,
+              width: 3.5,
               decoration: const BoxDecoration(
-                color: Color(0xFF451A03), // Matchbox dark brown phosphor friction strip
+                color: Color(0xFF451A03),
                 borderRadius: BorderRadius.horizontal(right: Radius.circular(2)),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// Backward compatibility alias for _HomeSection
+class _ProductCardWidget extends StatelessWidget {
+  final double width;
+  final ProductItem product;
+  final DeebaStore store;
+  final void Function(String brand, String category) onOrderNow;
+
+  const _ProductCardWidget({
+    required this.width,
+    required this.product,
+    required this.store,
+    required this.onOrderNow,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cat = product.priceCategories.first;
+    final price = product.bundlePriceByCategory[cat] ?? 450.0;
+    final mrp = cat == 'Rs. 1' ? 600.0 : 1200.0;
+    final brandColor = product.name.toLowerCase().contains('eagle')
+        ? const Color(0xFFB91C1C)
+        : product.name.toLowerCase().contains('pulli')
+            ? const Color(0xFFBE185D)
+            : const Color(0xFFD97706);
+
+    final item = _CatalogMatchItem(
+      id: '${product.id}-$cat',
+      brand: product.name,
+      category: cat,
+      fullName: '${product.name.toUpperCase()} - $cat',
+      typeTag: 'SAFETY MATCHES (40S)',
+      sticksCount: '40 Sticks / Box',
+      factoryBundlePrice: price,
+      mrpBundlePrice: mrp,
+      perBoxPrice: price / 600.0,
+      discountBadge: '25% OFF',
+      brandColor: brandColor,
+      description: product.description,
+    );
+
+    return SizedBox(
+      width: width,
+      height: 260,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFDCE7F5), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(8),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 105,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFBF8F3),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Stack(
+                children: [
+                  Center(
+                    child: Container(
+                      width: 52,
+                      height: 68,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.local_fire_department_rounded, color: brandColor, size: 18),
+                            Text(product.name.toUpperCase(), style: TextStyle(color: brandColor, fontWeight: FontWeight.w900, fontSize: 8)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 6,
+                    left: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(color: const Color(0xFFFBBF24), borderRadius: BorderRadius.circular(14)),
+                      child: const Text('25% OFF', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 9, color: Color(0xFF78350F))),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(item.fullName, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w900, color: Color(0xFF0F172A))),
+            Row(
+              children: [
+                Text('Rs. ${price.toInt()}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF1D4ED8))),
+                const SizedBox(width: 5),
+                Text('Rs. ${mrp.toInt()}', style: const TextStyle(fontSize: 10.5, decoration: TextDecoration.lineThrough, color: Color(0xFF94A3B8))),
+              ],
+            ),
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              height: 30,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1D4ED8),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: EdgeInsets.zero,
+                ),
+                onPressed: () => onOrderNow(product.name, cat),
+                child: const Text('Add to Cart', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
