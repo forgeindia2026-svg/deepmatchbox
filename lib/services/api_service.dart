@@ -419,6 +419,18 @@ class ApiService {
     }
   }
 
+  Future<bool> deleteOrder(String orderId) async {
+    try {
+      final res = await http.delete(
+        Uri.parse('$baseUrl/orders/$orderId'),
+      ).timeout(const Duration(seconds: 15));
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('ApiService.deleteOrder error: $e');
+      return false;
+    }
+  }
+
   // 9. Workers & Attendance
   Future<List<WorkerModel>> fetchWorkers() async {
     try {

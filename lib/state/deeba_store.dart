@@ -410,6 +410,16 @@ class DeebaStore extends ChangeNotifier {
     }
   }
 
+  Future<void> removeOnlineOrder(String orderId) async {
+    onlineOrders.removeWhere((o) => o.id == orderId);
+    notifyListeners();
+    try {
+      await api.deleteOrder(orderId);
+    } catch (e) {
+      debugPrint('removeOnlineOrder error: $e');
+    }
+  }
+
   void addOrUpdateProduct(ProductItem product) {
     final idx = products.indexWhere((p) => p.id == product.id);
     if (idx != -1) {

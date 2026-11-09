@@ -2343,6 +2343,34 @@ class _OnlineOrdersAdminViewState extends State<_OnlineOrdersAdminView> {
                                   }
                                 },
                               ),
+                              const SizedBox(width: 4),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
+                                tooltip: 'Delete this order',
+                                onPressed: () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Delete Order'),
+                                      content: Text('Are you sure you want to delete order ${order.id} (${order.customerName})?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx, false),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        FilledButton(
+                                          style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                                          onPressed: () => Navigator.pop(ctx, true),
+                                          child: const Text('Delete'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirm == true) {
+                                    await widget.store.removeOnlineOrder(order.id);
+                                  }
+                                },
+                              ),
                             ],
                           ),
                         ],

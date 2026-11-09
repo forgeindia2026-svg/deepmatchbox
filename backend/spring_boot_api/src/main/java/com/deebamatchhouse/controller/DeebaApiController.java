@@ -619,6 +619,13 @@ public class DeebaApiController {
         return Map.of("id", id, "status", body.get("status"));
     }
 
+    @DeleteMapping("/orders/{id}")
+    public Map<String, Object> deleteOrder(@PathVariable String id) {
+        Query q = new Query(Criteria.where("id").is(id));
+        mongoTemplate.remove(q, "online_orders");
+        return Map.of("success", true, "deletedId", id);
+    }
+
     // 11. CONTACT INQUIRIES
     @GetMapping("/inquiries")
     public List<Map> getInquiries() {
