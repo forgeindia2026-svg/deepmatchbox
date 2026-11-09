@@ -50,3 +50,4 @@ database/data/
 *.lock
 *.apk
 
+.vercel

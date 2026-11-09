@@ -1008,80 +1008,7 @@ class _HomeSectionState extends State<_HomeSection> {
 
   // ==================== SECTION 10: TESTIMONIALS ====================
   Widget _buildTestimonials(bool isMobile) {
-    final reviews = [
-      {
-        'quote': 'Eagle brand is our fastest-moving Rs. 1 matchbox across 120 retail shops in Madurai. Splints never snap, and customers specifically ask for Eagle.',
-        'author': 'Senthil Murugan Traders',
-        'location': 'Madurai, Tamil Nadu • 5 Years Partner',
-      },
-      {
-        'quote': 'During Karnataka monsoon other matches get damp and fail. Deeba\'s moisture-proof chemical head strikes every single time. Absolutely reliable.',
-        'author': 'Venkateshwara Agencies',
-        'location': 'Bengaluru, Karnataka • 3 Years Partner',
-      },
-      {
-        'quote': 'Lorry loads arrive directly from Sivakasi in pristine master cartons. Accurate bundle billing and prompt communication by their factory sales team.',
-        'author': 'Patel Wholesale Mart',
-        'location': 'Pune / Mumbai, Maharashtra • 4 Years Partner',
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeading(
-          title: 'Trusted by Wholesale Dealers Nationwide',
-          subtitle: 'What agency owners, stockists, and supermarket suppliers say about Deeba Match House',
-          isMobile: isMobile,
-        ),
-        const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (ctx, box) {
-            final cardWidth = isMobile ? box.maxWidth : (box.maxWidth - 32) / 3;
-            return Wrap(
-              spacing: 16,
-              runSpacing: 14,
-              children: reviews.map((r) {
-                return Container(
-                  width: cardWidth,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: List.generate(
-                          5,
-                          (_) => const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 18),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        '"${r['quote']!}"',
-                        style: const TextStyle(fontSize: 13, fontStyle: FontStyle.italic, height: 1.45, color: Colors.black87),
-                      ),
-                      const SizedBox(height: 14),
-                      Text(
-                        r['author']!,
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5, color: Color(0xFF0F172A)),
-                      ),
-                      Text(
-                        r['location']!,
-                        style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            );
-          },
-        ),
-      ],
-    );
+    return _TestimonialsSection(isMobile: isMobile);
   }
 
   // ==================== SECTION 11: FAQ ACCORDION ====================
@@ -1323,6 +1250,306 @@ class _HomeSectionState extends State<_HomeSection> {
             fontSize: isMobile ? 12 : 13,
           ),
         ),
+      ],
+    );
+  }
+}
+
+// ==================== SECTION 10: TESTIMONIALS CAROUSEL WIDGET ====================
+class _TestimonialsSection extends StatefulWidget {
+  final bool isMobile;
+  const _TestimonialsSection({required this.isMobile});
+
+  @override
+  State<_TestimonialsSection> createState() => _TestimonialsSectionState();
+}
+
+class _TestimonialsSectionState extends State<_TestimonialsSection> {
+  late final PageController _pageController;
+  int _currentPage = 0;
+
+  final List<Map<String, dynamic>> _reviews = const [
+    {
+      'quote': 'Eagle brand is our fastest-moving Rs. 1 matchbox across 120 retail shops in Madurai. Splints never snap, and customers specifically ask for Eagle.',
+      'author': 'Senthil Murugan Traders',
+      'city': 'Madurai, Tamil Nadu',
+      'tenure': '5 Years Partner',
+      'initials': 'SM',
+      'color': 0xFF059669,
+    },
+    {
+      'quote': 'During Karnataka monsoon other matches get damp and fail. Deeba\'s moisture-proof chemical head strikes every single time. Absolutely reliable.',
+      'author': 'Venkateshwara Agencies',
+      'city': 'Bengaluru, Karnataka',
+      'tenure': '3 Years Partner',
+      'initials': 'VA',
+      'color': 0xFF2563EB,
+    },
+    {
+      'quote': 'Lorry loads arrive directly from Sivakasi in pristine master cartons. Accurate bundle billing and prompt communication by their factory sales team.',
+      'author': 'Patel Wholesale Mart',
+      'city': 'Pune / Mumbai, Maharashtra',
+      'tenure': '4 Years Partner',
+      'initials': 'PW',
+      'color': 0xFFD97706,
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: widget.isMobile ? 0.90 : 1.0);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildCard(Map<String, dynamic> r, {bool isMobileCard = false}) {
+    return Container(
+      padding: EdgeInsets.all(isMobileCard ? 18 : 22),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Row(
+                children: List.generate(
+                  5,
+                  (_) => const Icon(Icons.star_rounded, color: Color(0xFFF59E0B), size: 18),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.verified_rounded, size: 13, color: Color(0xFF059669)),
+                    const SizedBox(width: 4),
+                    Text(
+                      r['tenure'] as String,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF065F46),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '"${r['quote']}"',
+            style: const TextStyle(
+              fontSize: 13,
+              fontStyle: FontStyle.italic,
+              height: 1.45,
+              color: Color(0xFF334155),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 17,
+                backgroundColor: Color(r['color'] as int),
+                child: Text(
+                  r['initials'] as String,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      r['author'] as String,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13.5,
+                        color: Color(0xFF0F172A),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on_rounded, size: 12, color: Color(0xFF94A3B8)),
+                        const SizedBox(width: 2),
+                        Expanded(
+                          child: Text(
+                            r['city'] as String,
+                            style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Trusted by Wholesale Dealers Nationwide',
+                    style: TextStyle(
+                      fontSize: widget.isMobile ? 19 : 26,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF0F172A),
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'What agency owners, stockists, and supermarket suppliers say about Deeba Match House',
+                    style: TextStyle(
+                      fontSize: widget.isMobile ? 12.5 : 14.5,
+                      color: const Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (widget.isMobile)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${_currentPage + 1} / ${_reviews.length}',
+                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (widget.isMobile) ...[
+          // MOBILE VIEW: SWIPEABLE CAROUSEL WITH PEEK
+          SizedBox(
+            height: 220,
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: _reviews.length,
+              onPageChanged: (i) => setState(() => _currentPage = i),
+              itemBuilder: (ctx, idx) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: _buildCard(_reviews[idx], isMobileCard: true),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 12),
+          // CONTROLS & DOTS
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                iconSize: 18,
+                onPressed: _currentPage > 0
+                    ? () => _pageController.previousPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        )
+                    : null,
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                color: const Color(0xFF0F172A),
+              ),
+              const SizedBox(width: 8),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(_reviews.length, (i) {
+                  final isActive = i == _currentPage;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: isActive ? 22 : 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: isActive ? const Color(0xFFB91C1C) : const Color(0xFFCBD5E1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                iconSize: 18,
+                onPressed: _currentPage < _reviews.length - 1
+                    ? () => _pageController.nextPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        )
+                    : null,
+                icon: const Icon(Icons.arrow_forward_ios_rounded),
+                color: const Color(0xFF0F172A),
+              ),
+            ],
+          ),
+        ] else ...[
+          // DESKTOP: 3-COLUMN SIDE BY SIDE
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: _reviews.map((r) {
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: _buildCard(r),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ],
     );
   }
