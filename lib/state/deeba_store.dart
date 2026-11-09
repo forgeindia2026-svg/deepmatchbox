@@ -313,7 +313,7 @@ class DeebaStore extends ChangeNotifier {
       materials.where((m) => m.isLowStock).toList();
 
   // ==================== CUSTOMER ACTIONS ====================
-  void placeOnlineOrder({
+  Future<bool> placeOnlineOrder({
     required String customerName,
     required String mobileNumber,
     required String address,
@@ -321,8 +321,8 @@ class DeebaStore extends ChangeNotifier {
     required String productCategory,
     required int quantityBundles,
     String additionalNotes = '',
-  }) {
-    final order = OnlineOrder(
+  }) async {
+    final localOrder = OnlineOrder(
       id: 'ORD-${1001 + onlineOrders.length}',
       customerName: customerName,
       mobileNumber: mobileNumber,
@@ -334,9 +334,11 @@ class DeebaStore extends ChangeNotifier {
       orderDate: DateTime.now(),
       status: OrderStatus.newOrder,
     );
-    onlineOrders.insert(0, order);
-    if (isApiConnected) {
-      api.placeOrder({
+    onlineOrders.insert(0, localOrder);
+    notifyListeners();
+
+    try {
+      final cloudOrder = await api.placeOrder({
         'customerName': customerName,
         'mobileNumber': mobileNumber,
         'address': address,
@@ -345,8 +347,33 @@ class DeebaStore extends ChangeNotifier {
         'quantity': quantityBundles,
         'notes': additionalNotes,
       });
+
+      if (cloudOrder != null) {
+        isApiConnected = true;
+        final idx = onlineOrders.indexOf(localOrder);
+        if (idx != -1) {
+          onlineOrders[idx] = cloudOrder;
+        }
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      debugPrint('placeOnlineOrder cloud sync error: $e');
     }
-    notifyListeners();
+    return false;
+  }
+
+  Future<void> refreshOrders() async {
+    try {
+      final ords = await api.fetchOrders();
+      if (ords.isNotEmpty) {
+        onlineOrders = ords;
+        isApiConnected = true;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('refreshOrders error: $e');
+    }
   }
 
   void submitContactInquiry({
@@ -370,14 +397,16 @@ class DeebaStore extends ChangeNotifier {
   }
 
   // ==================== ADMIN / STAFF ACTIONS ====================
-  void updateOrderStatus(String orderId, OrderStatus newStatus) {
+  Future<void> updateOrderStatus(String orderId, OrderStatus newStatus) async {
     final idx = onlineOrders.indexWhere((o) => o.id == orderId);
     if (idx != -1) {
       onlineOrders[idx].status = newStatus;
-      if (isApiConnected) {
-        api.updateOrderStatus(orderId, newStatus.label);
-      }
       notifyListeners();
+      try {
+        await api.updateOrderStatus(orderId, newStatus.label);
+      } catch (e) {
+        debugPrint('updateOrderStatus error: $e');
+      }
     }
   }
 

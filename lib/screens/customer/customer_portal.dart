@@ -2150,19 +2150,31 @@ class _OnlineOrderSectionState extends State<_OnlineOrderSection> {
     super.dispose();
   }
 
-  void _submitOrder() {
+  bool _isSubmitting = false;
+
+  Future<void> _submitOrder() async {
     if (!_formKey.currentState!.validate()) return;
 
+    setState(() => _isSubmitting = true);
+
     final qty = int.tryParse(_qtyCtrl.text.trim()) ?? 25;
-    widget.store.placeOnlineOrder(
-      customerName: _nameCtrl.text.trim(),
-      mobileNumber: _mobileCtrl.text.trim(),
+    final customerName = _nameCtrl.text.trim();
+    final mobile = _mobileCtrl.text.trim();
+    final brand = _selectedBrand;
+    final category = _selectedCategory;
+
+    await widget.store.placeOnlineOrder(
+      customerName: customerName,
+      mobileNumber: mobile,
       address: _addressCtrl.text.trim(),
-      productBrand: _selectedBrand,
-      productCategory: _selectedCategory,
+      productBrand: brand,
+      productCategory: category,
       quantityBundles: qty,
       additionalNotes: _notesCtrl.text.trim(),
     );
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
 
     showDialog(
       context: context,
@@ -2176,8 +2188,8 @@ class _OnlineOrderSectionState extends State<_OnlineOrderSection> {
           ],
         ),
         content: Text(
-          'Thank you, ${_nameCtrl.text.trim()}! Your wholesale order for $qty bundles of $_selectedBrand ($_selectedCategory) has been recorded.\n\n'
-          'Our factory dispatch desk will review your order and call ${_mobileCtrl.text.trim()} shortly for transport booking.',
+          'Thank you, $customerName! Your wholesale order for $qty bundles of $brand ($category) has been recorded.\n\n'
+          'Our factory dispatch desk will review your order and call $mobile shortly for transport booking.',
         ),
         actions: [
           FilledButton(
@@ -2389,11 +2401,22 @@ class _OnlineOrderSectionState extends State<_OnlineOrderSection> {
                             padding: const EdgeInsets.symmetric(vertical: 15),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
-                          onPressed: _submitOrder,
-                          icon: const Icon(Icons.send_rounded),
-                          label: const Text(
-                            'Submit Wholesale Order Booking',
-                            style: TextStyle(
+                          onPressed: _isSubmitting ? null : _submitOrder,
+                          icon: _isSubmitting
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.send_rounded),
+                          label: Text(
+                            _isSubmitting
+                                ? 'Submitting to Factory Server...'
+                                : 'Submit Wholesale Order Booking',
+                            style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                             ),

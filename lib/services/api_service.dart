@@ -342,11 +342,15 @@ class ApiService {
   // 8. Online Orders
   Future<List<OnlineOrder>> fetchOrders() async {
     try {
-      final res = await http.get(Uri.parse('$baseUrl/orders'));
+      final res = await http.get(Uri.parse('$baseUrl/orders')).timeout(const Duration(seconds: 15));
       if (res.statusCode == 200) {
         final List list = jsonDecode(res.body);
         return list.map((item) {
           final m = Map<String, dynamic>.from(item);
+          DateTime parsedDate = DateTime.now();
+          if (m['createdAt'] != null) {
+            parsedDate = DateTime.tryParse(m['createdAt'].toString()) ?? DateTime.now();
+          }
           return OnlineOrder(
             id: m['id'] ?? '',
             customerName: m['customerName'] ?? '',
@@ -356,7 +360,7 @@ class ApiService {
             productCategory: m['priceCategory'] ?? 'Rs. 1',
             quantityBundles: (m['quantity'] as num?)?.toInt() ?? 10,
             additionalNotes: m['notes'] ?? '',
-            orderDate: DateTime.now(),
+            orderDate: parsedDate,
             status: _parseOrderStatus(m['status']),
           );
         }).toList();
@@ -373,9 +377,13 @@ class ApiService {
         Uri.parse('$baseUrl/orders'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
-      );
-      if (res.statusCode == 200) {
+      ).timeout(const Duration(seconds: 25));
+      if (res.statusCode >= 200 && res.statusCode < 300) {
         final m = jsonDecode(res.body);
+        DateTime parsedDate = DateTime.now();
+        if (m['createdAt'] != null) {
+          parsedDate = DateTime.tryParse(m['createdAt'].toString()) ?? DateTime.now();
+        }
         return OnlineOrder(
           id: m['id'] ?? '',
           customerName: m['customerName'] ?? '',
@@ -385,9 +393,11 @@ class ApiService {
           productCategory: m['priceCategory'] ?? 'Rs. 1',
           quantityBundles: (m['quantity'] as num?)?.toInt() ?? 10,
           additionalNotes: m['notes'] ?? '',
-          orderDate: DateTime.now(),
+          orderDate: parsedDate,
           status: OrderStatus.newOrder,
         );
+      } else {
+        debugPrint('ApiService.placeOrder failed HTTP ${res.statusCode}: ${res.body}');
       }
     } catch (e) {
       debugPrint('ApiService.placeOrder error: $e');
@@ -401,7 +411,7 @@ class ApiService {
         Uri.parse('$baseUrl/orders/$orderId/status'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'status': newStatus}),
-      );
+      ).timeout(const Duration(seconds: 15));
       return res.statusCode == 200;
     } catch (e) {
       debugPrint('ApiService.updateOrderStatus error: $e');

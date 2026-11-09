@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../models/deeba_models.dart';
 import '../../state/deeba_store.dart';
@@ -2004,6 +2005,29 @@ class _OnlineOrdersAdminView extends StatefulWidget {
 
 class _OnlineOrdersAdminViewState extends State<_OnlineOrdersAdminView> {
   OrderStatus? _statusFilter;
+  bool _isRefreshing = false;
+  Timer? _pollingTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshLiveOrders();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      if (mounted) _refreshLiveOrders(silent: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _refreshLiveOrders({bool silent = false}) async {
+    if (!silent) setState(() => _isRefreshing = true);
+    await widget.store.refreshOrders();
+    if (mounted && !silent) setState(() => _isRefreshing = false);
+  }
 
   Color _statusColor(OrderStatus status) {
     switch (status) {
@@ -2036,13 +2060,42 @@ class _OnlineOrdersAdminViewState extends State<_OnlineOrdersAdminView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Customer Online Order Management',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
-              ),
-              const Text(
-                'Order Flow: Customer Places Order → Admin Reviews → Updates Status → Contacts Customer',
-                style: TextStyle(color: Colors.black54, fontSize: 12.5),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Customer Online Order Management',
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+                        ),
+                        Text(
+                          'Live MongoDB sync active • ${widget.store.onlineOrders.length} total orders (${widget.store.newOnlineOrdersCount} new)',
+                          style: const TextStyle(color: Colors.black54, fontSize: 12.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                  FilledButton.tonalIcon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFEFF6FF),
+                      foregroundColor: const Color(0xFF1D4ED8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    onPressed: _isRefreshing ? null : () => _refreshLiveOrders(),
+                    icon: _isRefreshing
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF1D4ED8)),
+                          )
+                        : const Icon(Icons.sync_rounded, size: 18),
+                    label: Text(_isRefreshing ? 'Syncing...' : 'Refresh Orders'),
+                  ),
+                ],
               ),
               const SizedBox(height: 10),
 
