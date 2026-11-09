@@ -1,4 +1,4 @@
-enum UserRole { customer, admin, staff }
+enum UserRole { customer, admin, staff, salesman }
 
 enum OrderStatus {
   newOrder('New'),
@@ -554,4 +554,176 @@ class UserModel {
       };
 }
 
+// ============================================================================
+// SHOP TIE-UP & KADAI MODEL (Field Salesman & Agency Distribution)
+// ============================================================================
+class ShopTieupModel {
+  final String id;
+  final String shopName;
+  final String ownerName;
+  final String mobileNumber;
+  final String shopType; // Grocery / Maligai, Wholesale Dealer, Petty Shop, Supermarket, Tea Stall
+  final String address;
+  final String city;
+  final double latitude;
+  final double longitude;
+  final String bannerPhotoUrl;
+  final String displayPhotoUrl;
+  final String salesmanId;
+  final String salesmanName;
+  final DateTime onboardDate;
+  final DateTime? lastVisited;
+  double outstandingBalance;
+  int totalOrdersCount;
+  double totalOrderValue;
 
+  ShopTieupModel({
+    required this.id,
+    required this.shopName,
+    required this.ownerName,
+    required this.mobileNumber,
+    String? shopType,
+    String? shopCategory,
+    required this.address,
+    String? city,
+    String? area,
+    double? latitude,
+    double? gpsLatitude,
+    double? longitude,
+    double? gpsLongitude,
+    this.bannerPhotoUrl = '',
+    String? displayPhotoUrl,
+    String? rackPhotoUrl,
+    required this.salesmanId,
+    required this.salesmanName,
+    DateTime? onboardDate,
+    DateTime? createdDate,
+    DateTime? lastVisitedDate,
+    this.outstandingBalance = 0.0,
+    this.totalOrdersCount = 0,
+    this.totalOrderValue = 0.0,
+  })  : shopType = shopCategory ?? shopType ?? 'Maligai',
+        city = area ?? city ?? 'Sivakasi',
+        latitude = gpsLatitude ?? latitude ?? 9.4533,
+        longitude = gpsLongitude ?? longitude ?? 77.7946,
+        displayPhotoUrl = rackPhotoUrl ?? displayPhotoUrl ?? '',
+        onboardDate = createdDate ?? onboardDate ?? DateTime.now(),
+        lastVisited = lastVisitedDate;
+
+  // Convenient Aliases for salesman portal & UI
+  String get shopCategory => shopType;
+  String get area => city;
+  double get gpsLatitude => latitude;
+  double get gpsLongitude => longitude;
+  String get rackPhotoUrl => displayPhotoUrl;
+  DateTime get createdDate => onboardDate;
+  DateTime get lastVisitedDate => lastVisited ?? onboardDate;
+
+  ShopTieupModel copyWith({
+    String? id,
+    String? shopName,
+    String? ownerName,
+    String? mobileNumber,
+    String? shopType,
+    String? shopCategory,
+    String? address,
+    String? city,
+    String? area,
+    double? latitude,
+    double? gpsLatitude,
+    double? longitude,
+    double? gpsLongitude,
+    String? bannerPhotoUrl,
+    String? displayPhotoUrl,
+    String? rackPhotoUrl,
+    String? salesmanId,
+    String? salesmanName,
+    DateTime? onboardDate,
+    DateTime? createdDate,
+    DateTime? lastVisitedDate,
+    double? outstandingBalance,
+    int? totalOrdersCount,
+    double? totalOrderValue,
+  }) {
+    return ShopTieupModel(
+      id: id ?? this.id,
+      shopName: shopName ?? this.shopName,
+      ownerName: ownerName ?? this.ownerName,
+      mobileNumber: mobileNumber ?? this.mobileNumber,
+      shopType: shopCategory ?? shopType ?? this.shopType,
+      address: address ?? this.address,
+      city: area ?? city ?? this.city,
+      latitude: gpsLatitude ?? latitude ?? this.latitude,
+      longitude: gpsLongitude ?? longitude ?? this.longitude,
+      bannerPhotoUrl: bannerPhotoUrl ?? this.bannerPhotoUrl,
+      displayPhotoUrl: rackPhotoUrl ?? displayPhotoUrl ?? this.displayPhotoUrl,
+      salesmanId: salesmanId ?? this.salesmanId,
+      salesmanName: salesmanName ?? this.salesmanName,
+      onboardDate: createdDate ?? onboardDate ?? this.onboardDate,
+      lastVisitedDate: lastVisitedDate ?? this.lastVisitedDate,
+      outstandingBalance: outstandingBalance ?? this.outstandingBalance,
+      totalOrdersCount: totalOrdersCount ?? this.totalOrdersCount,
+      totalOrderValue: totalOrderValue ?? this.totalOrderValue,
+    );
+  }
+
+  factory ShopTieupModel.fromJson(Map<String, dynamic> json) {
+    return ShopTieupModel(
+      id: json['id']?.toString() ?? '',
+      shopName: json['shopName']?.toString() ?? '',
+      ownerName: json['ownerName']?.toString() ?? '',
+      mobileNumber: json['mobileNumber']?.toString() ?? '',
+      shopType: json['shopCategory']?.toString() ?? json['shopType']?.toString() ?? 'Maligai',
+      address: json['address']?.toString() ?? '',
+      city: json['area']?.toString() ?? json['city']?.toString() ?? 'Sivakasi',
+      latitude: (json['gpsLatitude'] as num?)?.toDouble() ??
+          (json['latitude'] as num?)?.toDouble() ??
+          9.4533,
+      longitude: (json['gpsLongitude'] as num?)?.toDouble() ??
+          (json['longitude'] as num?)?.toDouble() ??
+          77.7946,
+      bannerPhotoUrl: json['bannerPhotoUrl']?.toString() ?? '',
+      displayPhotoUrl: json['rackPhotoUrl']?.toString() ?? json['displayPhotoUrl']?.toString() ?? '',
+      salesmanId: json['salesmanId']?.toString() ?? 'sales',
+      salesmanName: json['salesmanName']?.toString() ?? 'Sales Executive',
+      onboardDate: json['createdDate'] != null
+          ? DateTime.tryParse(json['createdDate'].toString()) ?? DateTime.now()
+          : json['onboardDate'] != null
+              ? DateTime.tryParse(json['onboardDate'].toString()) ?? DateTime.now()
+              : DateTime.now(),
+      lastVisitedDate: json['lastVisitedDate'] != null
+          ? DateTime.tryParse(json['lastVisitedDate'].toString())
+          : null,
+      outstandingBalance: (json['outstandingBalance'] as num?)?.toDouble() ?? 0.0,
+      totalOrdersCount: (json['totalOrdersCount'] as num?)?.toInt() ?? 0,
+      totalOrderValue: (json['totalOrderValue'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'shopName': shopName,
+        'ownerName': ownerName,
+        'mobileNumber': mobileNumber,
+        'shopType': shopType,
+        'shopCategory': shopCategory,
+        'address': address,
+        'city': city,
+        'area': area,
+        'latitude': latitude,
+        'gpsLatitude': gpsLatitude,
+        'longitude': longitude,
+        'gpsLongitude': gpsLongitude,
+        'bannerPhotoUrl': bannerPhotoUrl,
+        'displayPhotoUrl': displayPhotoUrl,
+        'rackPhotoUrl': rackPhotoUrl,
+        'salesmanId': salesmanId,
+        'salesmanName': salesmanName,
+        'onboardDate': onboardDate.toIso8601String(),
+        'createdDate': createdDate.toIso8601String(),
+        'lastVisitedDate': lastVisitedDate.toIso8601String(),
+        'outstandingBalance': outstandingBalance,
+        'totalOrdersCount': totalOrdersCount,
+        'totalOrderValue': totalOrderValue,
+      };
+}

@@ -17,7 +17,7 @@ class BusinessLoginScreen extends StatefulWidget {
 }
 
 class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
-  int _selectedRoleTab = 0; // 0 = Admin (Owner), 1 = Staff (Supervisor)
+  int _selectedRoleTab = 0; // 0 = Admin (Owner), 1 = Staff (Supervisor), 2 = Salesman (Field)
   late final TextEditingController _usernameCtrl;
   late final TextEditingController _passwordCtrl;
   bool _obscurePassword = true;
@@ -45,9 +45,12 @@ class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
       if (index == 0) {
         _usernameCtrl.text = 'admin';
         _passwordCtrl.text = 'admin123';
-      } else {
+      } else if (index == 1) {
         _usernameCtrl.text = 'staff';
         _passwordCtrl.text = 'staff123';
+      } else {
+        _usernameCtrl.text = 'sales';
+        _passwordCtrl.text = 'sales123';
       }
     });
   }
@@ -208,7 +211,7 @@ class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
                                 Expanded(
                                   child: _buildRoleSegment(
                                     index: 0,
-                                    label: 'Admin (Owner)',
+                                    label: 'Admin',
                                     icon: Icons.admin_panel_settings_rounded,
                                     activeColor: const Color(0xFFB91C1C),
                                   ),
@@ -221,6 +224,14 @@ class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
                                     activeColor: const Color(0xFF0F766E),
                                   ),
                                 ),
+                                Expanded(
+                                  child: _buildRoleSegment(
+                                    index: 2,
+                                    label: 'Salesman',
+                                    icon: Icons.storefront_rounded,
+                                    activeColor: const Color(0xFFD97706),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -230,7 +241,9 @@ class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
                           Text(
                             _selectedRoleTab == 0
                                 ? 'Full owner access: Dashboard, financial reports & settings'
-                                : 'Floor supervisor: Daily sheets, production entry & stock',
+                                : _selectedRoleTab == 1
+                                    ? 'Floor supervisor: Daily sheets, production entry & stock'
+                                    : 'Field salesman: Kadai tie-ups, spot order booking & visits',
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontSize: 11.5,
@@ -285,9 +298,7 @@ class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
-                                  color: _selectedRoleTab == 0
-                                      ? const Color(0xFFB91C1C)
-                                      : const Color(0xFF0F766E),
+                                  color: _selectedRoleTab == 0 ? const Color(0xFFB91C1C) : _selectedRoleTab == 1 ? const Color(0xFF0F766E) : const Color(0xFFD97706),
                                   width: 1.8,
                                 ),
                               ),
@@ -353,9 +364,7 @@ class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
-                                  color: _selectedRoleTab == 0
-                                      ? const Color(0xFFB91C1C)
-                                      : const Color(0xFF0F766E),
+                                  color: _selectedRoleTab == 0 ? const Color(0xFFB91C1C) : _selectedRoleTab == 1 ? const Color(0xFF0F766E) : const Color(0xFFD97706),
                                   width: 1.8,
                                 ),
                               ),
@@ -406,22 +415,12 @@ class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
                             child: DecoratedBox(
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
-                                  colors: _selectedRoleTab == 0
-                                      ? [
-                                          const Color(0xFFB91C1C),
-                                          const Color(0xFF991B1B)
-                                        ]
-                                      : [
-                                          const Color(0xFF0F766E),
-                                          const Color(0xFF115E59)
-                                        ],
+                                  colors: _selectedRoleTab == 0 ? [const Color(0xFFB91C1C), const Color(0xFF991B1B)] : _selectedRoleTab == 1 ? [const Color(0xFF0F766E), const Color(0xFF115E59)] : [const Color(0xFFD97706), const Color(0xFFB45309)],
                                 ),
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: (_selectedRoleTab == 0
-                                            ? const Color(0xFFB91C1C)
-                                            : const Color(0xFF0F766E))
+                                    color: (_selectedRoleTab == 0 ? const Color(0xFFB91C1C) : _selectedRoleTab == 1 ? const Color(0xFF0F766E) : const Color(0xFFD97706))
                                         .withAlpha(75),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
@@ -551,6 +550,35 @@ class _BusinessLoginScreenState extends State<BusinessLoginScreen> {
                                       fontSize: 11,
                                       fontWeight: FontWeight.w700,
                                       color: Color(0xFF0F766E),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              InkWell(
+                                borderRadius: BorderRadius.circular(6),
+                                onTap: () {
+                                  _onRoleTabChanged(2);
+                                  _attemptLogin();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3.5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEF3C7),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: const Color(0xFFFDE68A),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Salesman (Murugan)',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFFB45309),
                                     ),
                                   ),
                                 ),

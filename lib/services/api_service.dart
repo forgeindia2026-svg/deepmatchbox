@@ -431,6 +431,49 @@ class ApiService {
     }
   }
 
+  // 8b. Shops & Kadai Tie-ups (Field Salesman)
+  Future<List<ShopTieupModel>> fetchShops() async {
+    try {
+      final res = await http.get(Uri.parse('$baseUrl/shops')).timeout(const Duration(seconds: 15));
+      if (res.statusCode == 200) {
+        final List list = jsonDecode(res.body);
+        return list.map((item) => ShopTieupModel.fromJson(Map<String, dynamic>.from(item))).toList();
+      }
+    } catch (e) {
+      debugPrint('ApiService.fetchShops error: $e');
+    }
+    return [];
+  }
+
+  Future<ShopTieupModel?> createShop(Map<String, dynamic> body) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/shops'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      ).timeout(const Duration(seconds: 25));
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final m = jsonDecode(res.body);
+        return ShopTieupModel.fromJson(Map<String, dynamic>.from(m));
+      }
+    } catch (e) {
+      debugPrint('ApiService.createShop error: $e');
+    }
+    return null;
+  }
+
+  Future<bool> deleteShop(String shopId) async {
+    try {
+      final res = await http.delete(
+        Uri.parse('$baseUrl/shops/$shopId'),
+      ).timeout(const Duration(seconds: 15));
+      return res.statusCode == 200;
+    } catch (e) {
+      debugPrint('ApiService.deleteShop error: $e');
+      return false;
+    }
+  }
+
   // 9. Workers & Attendance
   Future<List<WorkerModel>> fetchWorkers() async {
     try {

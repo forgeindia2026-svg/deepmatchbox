@@ -34,6 +34,7 @@ class DeebaStore extends ChangeNotifier {
   List<DailyProductionSheet> dailySheets = [];
   DailyProductionSheet? todayDailySheet;
   List<UserModel> systemUsers = [];
+  List<ShopTieupModel> shops = [];
 
   DeebaStore() {
     _seedInitialData();
@@ -65,6 +66,7 @@ class DeebaStore extends ChangeNotifier {
         final prdRecs = await api.fetchProductionRecords();
         final attRecs = await api.fetchAttendance();
         final usrs = await api.fetchUsers();
+        final shps = await api.fetchShops();
 
         if (prods.isNotEmpty) products = prods;
         if (mats.isNotEmpty) materials = mats;
@@ -79,6 +81,7 @@ class DeebaStore extends ChangeNotifier {
         if (prdRecs.isNotEmpty) productionRecords = prdRecs;
         if (attRecs.isNotEmpty) dailyRecords = attRecs;
         if (usrs.isNotEmpty) systemUsers = usrs;
+        if (shps.isNotEmpty) shops = shps;
         syncStatusMessage = 'Live Connected to Cloud Database (deeba_match_house)';
       } else {
         isApiConnected = false;
@@ -122,6 +125,8 @@ class DeebaStore extends ChangeNotifier {
           _loggedInUserName = 'Deeba Admin';
         case UserRole.staff:
           _loggedInUserName = 'Ramesh (Production & Floor Staff)';
+        case UserRole.salesman:
+          _loggedInUserName = 'Murugan (Field Sales Executive)';
       }
     }
     notifyListeners();
@@ -133,6 +138,11 @@ class DeebaStore extends ChangeNotifier {
     if ((u == 'admin' || u == 'admin@deeba.com') && p == 'admin123') {
       _loggedInUserUsername = 'admin';
       switchRole(UserRole.admin, userName: 'Deeba Admin');
+      return true;
+    }
+    if ((u == 'sales' || u == 'salesman' || u == 'sales@deeba.com') && (p == 'sales123' || p == 'admin123')) {
+      _loggedInUserUsername = 'sales';
+      switchRole(UserRole.salesman, userName: 'Murugan (Field Sales Executive)');
       return true;
     }
     if ((u == 'staff' || u == 'staff@deeba.com') && p == 'staff123') {
@@ -148,7 +158,7 @@ class DeebaStore extends ChangeNotifier {
     final res = await api.login(username, password);
     if (res['success'] == true) {
       final roleStr = (res['role'] ?? 'staff').toString().toLowerCase();
-      final userRole = roleStr == 'admin' ? UserRole.admin : UserRole.staff;
+      final userRole = roleStr == 'admin' ? UserRole.admin : (roleStr == 'salesman' || roleStr == 'sales') ? UserRole.salesman : UserRole.staff;
       final name = res['userName']?.toString() ?? username;
       _loggedInUserUsername = res['username']?.toString() ?? username;
       switchRole(userRole, userName: name);
@@ -876,6 +886,110 @@ class DeebaStore extends ChangeNotifier {
         api.payWorkerSalary(workerId, amountPaid);
       }
       notifyListeners();
+    }
+  }
+
+
+  // ==================== KADAI TIE-UP & FIELD SALES ====================
+  Future<bool> registerShopTieup(ShopTieupModel newShop) async {
+    shops.insert(0, newShop);
+    notifyListeners();
+    if (isApiConnected) {
+      try {
+        await api.createShop(newShop.toJson());
+      } catch (e) {
+        debugPrint('registerShopTieup remote error: $e');
+      }
+    }
+    return true;
+  }
+
+  Future<bool> bookSpotOrder({
+    required ShopTieupModel shop,
+    required String productBrand,
+    required String priceCategory,
+    required double quantity,
+    required double salePrice,
+    required double amountReceived,
+    required String paymentMode, // Cash, UPI, Credit (Baaki)
+    String notes = '',
+  }) async {
+    final now = DateTime.now();
+    recordSale(
+      customerType: CustomerType.store,
+      partyName: shop.shopName,
+      mobileNumber: shop.mobileNumber,
+      address: shop.address,
+      productBrand: productBrand,
+      priceCategory: priceCategory,
+      quantity: quantity,
+      salePrice: salePrice,
+      amountReceived: amountReceived,
+      salesDate: now,
+    );
+
+    // Update shop stats
+    final totalBill = quantity * salePrice;
+    final balanceDiff = totalBill - amountReceived;
+    final idx = shops.indexWhere((s) => s.id == shop.id);
+    if (idx != -1) {
+      final updated = shops[idx].copyWith(
+        lastVisitedDate: now,
+        outstandingBalance: shops[idx].outstandingBalance + (balanceDiff > 0 ? balanceDiff : 0.0),
+      );
+      shops[idx] = updated;
+      if (isApiConnected) {
+        try {
+          await api.createShop(updated.toJson());
+        } catch (e) {
+          debugPrint('update shop error: $e');
+        }
+      }
+    }
+    notifyListeners();
+    return true;
+  }
+
+  Future<void> collectShopPayment(String shopId, double amountCollected) async {
+    final idx = shops.indexWhere((s) => s.id == shopId);
+    if (idx != -1) {
+      final currentBal = shops[idx].outstandingBalance;
+      final newBal = (currentBal - amountCollected).clamp(0.0, double.infinity);
+      final updated = shops[idx].copyWith(
+        outstandingBalance: newBal,
+        lastVisitedDate: DateTime.now(),
+      );
+      shops[idx] = updated;
+      notifyListeners();
+      if (isApiConnected) {
+        try {
+          await api.createShop(updated.toJson());
+        } catch (e) {
+          debugPrint('collect payment remote sync error: $e');
+        }
+      }
+    }
+  }
+
+  Future<void> removeShop(String shopId) async {
+    shops.removeWhere((s) => s.id == shopId);
+    notifyListeners();
+    if (isApiConnected) {
+      try {
+        await api.deleteShop(shopId);
+      } catch (e) {
+        debugPrint('deleteShop remote error: $e');
+      }
+    }
+  }
+
+  Future<void> refreshShops() async {
+    if (isApiConnected) {
+      final shps = await api.fetchShops();
+      if (shps.isNotEmpty) {
+        shops = shps;
+        notifyListeners();
+      }
     }
   }
 
@@ -1607,6 +1721,47 @@ class DeebaStore extends ChangeNotifier {
 
     // 10. Worker Daily Attendance & Activity Records (Empty - marked daily)
     dailyRecords = [];
+
+    // 11. Seeded Field Shops (Tie-ups)
+    shops = [
+      ShopTieupModel(
+        id: 'SHP-101',
+        shopName: 'Sri Murugan Maligai Store',
+        ownerName: 'Murugesan Pillai',
+        mobileNumber: '9842155667',
+        address: 'Near Old Bus Stand, Sattur Road, Sivakasi',
+        area: 'Sivakasi Town',
+        shopCategory: 'Maligai',
+        gpsLatitude: 9.4533,
+        gpsLongitude: 77.7946,
+        salesmanId: 'sales',
+        salesmanName: 'Murugan (Field Sales Executive)',
+        bannerPhotoUrl: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=600&q=80',
+        rackPhotoUrl: '',
+        outstandingBalance: 1200.0,
+        createdDate: now.subtract(const Duration(days: 3)),
+        lastVisitedDate: now.subtract(const Duration(days: 1)),
+      ),
+      ShopTieupModel(
+        id: 'SHP-102',
+        shopName: 'Raja Tea Stall & Petty Store',
+        ownerName: 'Raja Mohammed',
+        mobileNumber: '9788123456',
+        address: 'Opposite Railway Feeder Road, Virudhunagar',
+        area: 'Virudhunagar Feeder',
+        shopCategory: 'Tea Stall',
+        gpsLatitude: 9.5872,
+        gpsLongitude: 77.9579,
+        salesmanId: 'sales',
+        salesmanName: 'Murugan (Field Sales Executive)',
+        bannerPhotoUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80',
+        rackPhotoUrl: '',
+        outstandingBalance: 0.0,
+        createdDate: now.subtract(const Duration(days: 2)),
+        lastVisitedDate: now,
+      ),
+    ];
+
   }
 }
 

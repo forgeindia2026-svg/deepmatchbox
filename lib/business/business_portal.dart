@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/deeba_models.dart';
 import '../screens/admin/admin_portal.dart';
+import '../screens/salesman/salesman_portal.dart';
 import '../state/deeba_store.dart';
 import 'auth/login_screen.dart';
 
@@ -19,6 +20,14 @@ class BusinessPortal extends StatelessWidget {
     return AnimatedBuilder(
       animation: store,
       builder: (context, _) {
+        // If logged in as Field Salesman, render Field Salesman Portal
+        if (store.currentRole == UserRole.salesman) {
+          return SalesmanPortal(
+            store: store,
+            onLogout: () => store.logout(),
+          );
+        }
+
         // If not logged in as Admin or Staff, display the Role-Based Login Screen
         if (store.currentRole != UserRole.admin &&
             store.currentRole != UserRole.staff) {
@@ -37,4 +46,3 @@ class BusinessPortal extends StatelessWidget {
     );
   }
 }
-

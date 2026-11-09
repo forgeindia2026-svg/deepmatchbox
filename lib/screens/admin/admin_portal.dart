@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../models/deeba_models.dart';
@@ -45,6 +46,7 @@ class _AdminStaffPortalState extends State<AdminStaffPortal> {
       _NavModuleItem('daily_sheet', 'Daily Factory Sheet',
           Icons.assignment_turned_in_rounded),
       _NavModuleItem('sales', 'Agent & Store Sales', Icons.storefront_rounded),
+      _NavModuleItem('shops', 'Kadai & Field Sales', Icons.store_mall_directory_rounded),
       _NavModuleItem(
           'stock', 'Stock & Finished Goods', Icons.warehouse_rounded),
       _NavModuleItem('production', 'Production',
@@ -595,6 +597,8 @@ class _AdminStaffPortalState extends State<AdminStaffPortal> {
         return _ProductionManagementView(store: widget.store);
       case 'sales':
         return _SalesManagementView(store: widget.store);
+      case 'shops':
+        return _AdminKadaiFieldSalesView(store: widget.store);
       case 'workers':
         return _WorkersAttendanceSalaryView(store: widget.store);
       case 'users':
@@ -8020,6 +8024,437 @@ class _DailyFactorySheetViewState extends State<_DailyFactorySheetView> {
           color: color,
         ),
       ),
+    );
+  }
+}
+
+// ============================================================================
+// KADAI TIE-UPS & FIELD SALES ADMIN VIEW
+// ============================================================================
+class _AdminKadaiFieldSalesView extends StatefulWidget {
+  final DeebaStore store;
+  const _AdminKadaiFieldSalesView({required this.store});
+
+  @override
+  State<_AdminKadaiFieldSalesView> createState() => _AdminKadaiFieldSalesViewState();
+}
+
+class _AdminKadaiFieldSalesViewState extends State<_AdminKadaiFieldSalesView> {
+  String _search = '';
+  String _filterCat = 'All';
+  bool _isRefreshing = false;
+
+  Future<void> _refresh() async {
+    setState(() => _isRefreshing = true);
+    await widget.store.refreshShops();
+    if (mounted) setState(() => _isRefreshing = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final shops = widget.store.shops;
+    final totalBaaki = shops.fold<double>(0.0, (acc, s) => acc + s.outstandingBalance);
+
+    final filtered = shops.where((s) {
+      final q = _search.trim().toLowerCase();
+      final matchQ = q.isEmpty ||
+          s.shopName.toLowerCase().contains(q) ||
+          s.ownerName.toLowerCase().contains(q) ||
+          s.area.toLowerCase().contains(q) ||
+          s.mobileNumber.contains(q);
+      if (!matchQ) return false;
+
+      if (_filterCat == 'Baaki') return s.outstandingBalance > 0;
+      if (_filterCat != 'All') return s.shopCategory == _filterCat;
+      return true;
+    }).toList();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header & Refresh
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Kadai Tie-ups & Field Sales Tracker',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Real-time retail shop registrations, GPS locations, storefront banner proof & salesman spot orders',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F172A),
+                  foregroundColor: Colors.white,
+                ),
+                icon: _isRefreshing
+                    ? const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : const Icon(Icons.refresh_rounded, size: 16),
+                label: const Text('Refresh'),
+                onPressed: _isRefreshing ? null : _refresh,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // 4 KPI Cards
+          Row(
+            children: [
+              Expanded(
+                child: _buildMetricTile(
+                  title: 'Total Kadai Tie-ups',
+                  value: '${shops.length}',
+                  subtitle: 'Onboarded Retail Stores',
+                  icon: Icons.storefront_rounded,
+                  color: const Color(0xFF2563EB),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMetricTile(
+                  title: 'Field Executive',
+                  value: 'Murugan',
+                  subtitle: 'Sivakasi Feeder Beat',
+                  icon: Icons.badge_rounded,
+                  color: const Color(0xFFD97706),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMetricTile(
+                  title: 'Total Field Baaki',
+                  value: '₹${totalBaaki.toStringAsFixed(0)}',
+                  subtitle: 'Across Retail Stores',
+                  icon: Icons.account_balance_wallet_rounded,
+                  color: const Color(0xFFDC2626),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildMetricTile(
+                  title: 'Sync Status',
+                  value: widget.store.isApiConnected ? 'Live MongoDB' : 'Local Cache',
+                  subtitle: 'Atlas Cloud Database',
+                  icon: Icons.cloud_done_rounded,
+                  color: const Color(0xFF059669),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Search & Filter
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: const InputDecoration(
+                      hintText: 'Search shop name, owner, area, phone...',
+                      prefixIcon: Icon(Icons.search, size: 18),
+                      border: InputBorder.none,
+                      isDense: true,
+                    ),
+                    onChanged: (v) => setState(() => _search = v),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Wrap(
+                  spacing: 6,
+                  children: ['All', 'Baaki', 'Maligai', 'Tea Stall'].map((cat) {
+                    final isSel = _filterCat == cat;
+                    return ChoiceChip(
+                      label: Text(cat == 'Baaki' ? 'With Baaki (Dues)' : cat),
+                      selected: isSel,
+                      selectedColor: const Color(0xFFD97706),
+                      labelStyle: TextStyle(
+                        color: isSel ? Colors.white : const Color(0xFF0F172A),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 11,
+                      ),
+                      onSelected: (val) {
+                        if (val) setState(() => _filterCat = cat);
+                      },
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Kadai Cards / Grid
+          if (filtered.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(40),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: const Column(
+                children: [
+                  Icon(Icons.storefront_outlined, size: 48, color: Color(0xFF94A3B8)),
+                  SizedBox(height: 10),
+                  Text('No tied-up retail shops match your search', style: TextStyle(fontWeight: FontWeight.w600)),
+                ],
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: filtered.length,
+              itemBuilder: (ctx, idx) {
+                final shop = filtered[idx];
+                return _buildShopAdminCard(shop);
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricTile({
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(icon, color: color, size: 20),
+              Text(subtitle, style: const TextStyle(fontSize: 10.5, color: Color(0xFF64748B))),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: color)),
+          const SizedBox(height: 2),
+          Text(title, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF334155))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShopAdminCard(ShopTieupModel shop) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Banner Photo
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: shop.bannerPhotoUrl.isNotEmpty
+                ? Image.network(
+                    shop.bannerPhotoUrl,
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => _buildFallbackShopIcon(),
+                  )
+                : _buildFallbackShopIcon(),
+          ),
+          const SizedBox(width: 14),
+
+          // Details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        shop.shopName,
+                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        shop.shopCategory,
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF92400E)),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Owner: ${shop.ownerName} • Phone: ${shop.mobileNumber}',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
+                ),
+                Text(
+                  'Address: ${shop.address}, ${shop.area}',
+                  style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.gps_fixed, size: 11, color: Color(0xFF059669)),
+                          const SizedBox(width: 4),
+                          Text(
+                            'GPS: ${shop.gpsLatitude.toStringAsFixed(4)}, ${shop.gpsLongitude.toStringAsFixed(4)}',
+                            style: const TextStyle(fontSize: 10.5, fontFamily: 'monospace'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Onboarded by: ${shop.salesmanName}',
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 14),
+
+          // Baaki & Action
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (shop.outstandingBalance > 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFEF2F2),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFFFCA5A5)),
+                  ),
+                  child: Text(
+                    'Baaki: ₹${shop.outstandingBalance.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFDC2626),
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: const Color(0xFF86EFAC)),
+                  ),
+                  child: const Text(
+                    'No Dues (Clean)',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF059669)),
+                  ),
+                ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.map_rounded, size: 18, color: Color(0xFF2563EB)),
+                    tooltip: 'Copy GPS Google Maps Link',
+                    onPressed: () {
+                      final url = 'https://www.google.com/maps/search/?api=1&query=${shop.gpsLatitude},${shop.gpsLongitude}';
+                      Clipboard.setData(ClipboardData(text: url));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Google Maps GPS link copied to clipboard!')),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Color(0xFFDC2626)),
+                    tooltip: 'Remove Shop Tie-up',
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (dCtx) => AlertDialog(
+                          title: const Text('Remove Shop Tie-up?'),
+                          content: Text('Are you sure you want to delete ${shop.shopName}?'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text('Cancel')),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFDC2626), foregroundColor: Colors.white),
+                              onPressed: () async {
+                                Navigator.pop(dCtx);
+                                await widget.store.removeShop(shop.id);
+                              },
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFallbackShopIcon() {
+    return Container(
+      width: 80,
+      height: 80,
+      color: const Color(0xFFF1F5F9),
+      child: const Icon(Icons.storefront_rounded, size: 30, color: Color(0xFF94A3B8)),
     );
   }
 }
