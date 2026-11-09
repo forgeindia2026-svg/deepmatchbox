@@ -1722,45 +1722,8 @@ class DeebaStore extends ChangeNotifier {
     // 10. Worker Daily Attendance & Activity Records (Empty - marked daily)
     dailyRecords = [];
 
-    // 11. Seeded Field Shops (Tie-ups)
-    shops = [
-      ShopTieupModel(
-        id: 'SHP-101',
-        shopName: 'Sri Murugan Maligai Store',
-        ownerName: 'Murugesan Pillai',
-        mobileNumber: '9842155667',
-        address: 'Near Old Bus Stand, Sattur Road, Sivakasi',
-        area: 'Sivakasi Town',
-        shopCategory: 'Maligai',
-        gpsLatitude: 9.4533,
-        gpsLongitude: 77.7946,
-        salesmanId: 'sales',
-        salesmanName: 'Murugan (Field Sales Executive)',
-        bannerPhotoUrl: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=600&q=80',
-        rackPhotoUrl: '',
-        outstandingBalance: 1200.0,
-        createdDate: now.subtract(const Duration(days: 3)),
-        lastVisitedDate: now.subtract(const Duration(days: 1)),
-      ),
-      ShopTieupModel(
-        id: 'SHP-102',
-        shopName: 'Raja Tea Stall & Petty Store',
-        ownerName: 'Raja Mohammed',
-        mobileNumber: '9788123456',
-        address: 'Opposite Railway Feeder Road, Virudhunagar',
-        area: 'Virudhunagar Feeder',
-        shopCategory: 'Tea Stall',
-        gpsLatitude: 9.5872,
-        gpsLongitude: 77.9579,
-        salesmanId: 'sales',
-        salesmanName: 'Murugan (Field Sales Executive)',
-        bannerPhotoUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80',
-        rackPhotoUrl: '',
-        outstandingBalance: 0.0,
-        createdDate: now.subtract(const Duration(days: 2)),
-        lastVisitedDate: now,
-      ),
-    ];
+    // 11. Field Shops (Loaded live from MongoDB Atlas)
+    shops = [];
 
   }
 }

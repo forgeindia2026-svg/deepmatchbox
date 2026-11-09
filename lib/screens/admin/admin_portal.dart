@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -8285,19 +8286,8 @@ class _AdminKadaiFieldSalesViewState extends State<_AdminKadaiFieldSalesView> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Banner Photo
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: shop.bannerPhotoUrl.isNotEmpty
-                ? Image.network(
-                    shop.bannerPhotoUrl,
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => _buildFallbackShopIcon(),
-                  )
-                : _buildFallbackShopIcon(),
-          ),
+          // Banner Photo (Base64 Camera or URL)
+          _buildAdminShopThumbnail(shop.bannerPhotoUrl),
           const SizedBox(width: 14),
 
           // Details
@@ -8445,6 +8435,33 @@ class _AdminKadaiFieldSalesViewState extends State<_AdminKadaiFieldSalesView> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAdminShopThumbnail(String photoUrl) {
+    if (photoUrl.isEmpty) return _buildFallbackShopIcon();
+    if (photoUrl.startsWith('data:image')) {
+      try {
+        final commaIdx = photoUrl.indexOf(',');
+        final b64 = commaIdx != -1 ? photoUrl.substring(commaIdx + 1) : photoUrl;
+        final bytes = base64Decode(b64);
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.memory(bytes, width: 80, height: 80, fit: BoxFit.cover),
+        );
+      } catch (_) {
+        return _buildFallbackShopIcon();
+      }
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.network(
+        photoUrl,
+        width: 80,
+        height: 80,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildFallbackShopIcon(),
       ),
     );
   }

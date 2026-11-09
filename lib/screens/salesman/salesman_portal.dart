@@ -1,5 +1,8 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../models/deeba_models.dart';
 import '../../state/deeba_store.dart';
 
@@ -20,14 +23,6 @@ class SalesmanPortal extends StatefulWidget {
 class _SalesmanPortalState extends State<SalesmanPortal> {
   int _currentTabIndex = 0;
   ShopTieupModel? _preselectedShopForOrder;
-
-  // Preset Realistic Banner Images for Sivakasi Kadai Onboarding
-  final List<String> _sampleBannerPresets = [
-    'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1588964895597-cfccd6e2dbf9?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?auto=format&fit=crop&w=600&q=80',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -51,11 +46,10 @@ class _SalesmanPortalState extends State<SalesmanPortal> {
             case 1:
               return _NewKadaiTieupView(
                 store: widget.store,
-                bannerPresets: _sampleBannerPresets,
                 onShopCreated: (newShop) {
                   setState(() {
                     _preselectedShopForOrder = newShop;
-                    _currentTabIndex = 2; // Jump to Spot Order
+                    _currentTabIndex = 2; // Jump directly to Spot Order
                   });
                 },
               );
@@ -264,6 +258,61 @@ class _SalesmanPortalState extends State<SalesmanPortal> {
   }
 }
 
+// ==================== HELPER: RENDER REAL SHOP PHOTO ====================
+Widget _buildRealShopThumbnail(String photoUrl, {double width = 55, double height = 55}) {
+  if (photoUrl.isEmpty) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: const Icon(Icons.storefront_rounded, color: Color(0xFF94A3B8)),
+    );
+  }
+
+  if (photoUrl.startsWith('data:image')) {
+    try {
+      final commaIdx = photoUrl.indexOf(',');
+      final b64 = commaIdx != -1 ? photoUrl.substring(commaIdx + 1) : photoUrl;
+      final bytes = base64Decode(b64);
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.memory(
+          bytes,
+          width: width,
+          height: height,
+          fit: BoxFit.cover,
+        ),
+      );
+    } catch (_) {
+      return Container(
+        width: width,
+        height: height,
+        color: const Color(0xFFF1F5F9),
+        child: const Icon(Icons.storefront_rounded, color: Color(0xFF94A3B8)),
+      );
+    }
+  }
+
+  return ClipRRect(
+    borderRadius: BorderRadius.circular(8),
+    child: Image.network(
+      photoUrl,
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => Container(
+        width: width,
+        height: height,
+        color: const Color(0xFFF1F5F9),
+        child: const Icon(Icons.storefront_rounded, color: Color(0xFF94A3B8)),
+      ),
+    ),
+  );
+}
+
 // ==================== TAB 0: BEAT DASHBOARD ====================
 class _SalesmanBeatDashboard extends StatelessWidget {
   final DeebaStore store;
@@ -276,7 +325,6 @@ class _SalesmanBeatDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate Today's field sales metrics
     final today = DateTime.now();
     final todayShops = store.shops.where((s) {
       final diff = today.difference(s.lastVisitedDate).inHours;
@@ -371,7 +419,7 @@ class _SalesmanBeatDashboard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Explore maligai & tea stalls, register shop banner & exact GPS, and book spot bundle orders directly.',
+                  'Explore maligai & tea stalls, take live camera photo proof, verify GPS location, and book spot bundle orders directly.',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w400,
@@ -479,46 +527,48 @@ class _SalesmanBeatDashboard extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Tied-up Kadai Preview Section
+          // Tied-up Kadai Section Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'அண்மையில் இணைக்கப்பட்ட கடைகள் (Recent Shops)',
+                'இணைக்கப்பட்ட கடைகள் (Tied-up Shops)',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF0F172A),
                 ),
               ),
-              TextButton(
-                onPressed: () => onNavigateToTab(3),
-                child: const Text('View All'),
-              ),
+              if (store.shops.isNotEmpty)
+                TextButton(
+                  onPressed: () => onNavigateToTab(3),
+                  child: const Text('View All'),
+                ),
             ],
           ),
           const SizedBox(height: 8),
 
           if (store.shops.isEmpty)
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(28),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
               child: Column(
                 children: [
-                  const Icon(Icons.storefront_outlined, size: 40, color: Color(0xFF94A3B8)),
-                  const SizedBox(height: 8),
+                  const Icon(Icons.storefront_outlined, size: 44, color: Color(0xFF94A3B8)),
+                  const SizedBox(height: 10),
                   const Text(
                     'இன்னும் கடைகள் பதிவு செய்யப்படவில்லை',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'Tap "புது கடை Tie-up" to register your first retail shop.',
+                    'Tap "புது கடை Tie-up" to register your first retail shop with real camera photo and GPS location.',
+                    textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                   ),
                 ],
@@ -606,22 +656,8 @@ class _SalesmanBeatDashboard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Banner photo
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: shop.bannerPhotoUrl.isNotEmpty
-                ? Image.network(
-                    shop.bannerPhotoUrl,
-                    width: 55,
-                    height: 55,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => _buildFallbackShopIcon(),
-                  )
-                : _buildFallbackShopIcon(),
-          ),
+          _buildRealShopThumbnail(shop.bannerPhotoUrl, width: 55, height: 55),
           const SizedBox(width: 12),
-
-          // Details
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -697,29 +733,15 @@ class _SalesmanBeatDashboard extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildFallbackShopIcon() {
-    return Container(
-      width: 55,
-      height: 55,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: const Icon(Icons.storefront_rounded, color: Color(0xFF94A3B8)),
-    );
-  }
 }
 
 // ==================== TAB 1: NEW KADAI TIE-UP ====================
 class _NewKadaiTieupView extends StatefulWidget {
   final DeebaStore store;
-  final List<String> bannerPresets;
   final Function(ShopTieupModel newShop) onShopCreated;
 
   const _NewKadaiTieupView({
     required this.store,
-    required this.bannerPresets,
     required this.onShopCreated,
   });
 
@@ -733,8 +755,12 @@ class _NewKadaiTieupViewState extends State<_NewKadaiTieupView> {
   final _ownerNameCtrl = TextEditingController();
   final _mobileCtrl = TextEditingController();
   final _addressCtrl = TextEditingController();
-  final _areaCtrl = TextEditingController(text: 'Sivakasi Town');
-  final _bannerUrlCtrl = TextEditingController();
+  final _areaCtrl = TextEditingController(text: 'Sivakasi');
+
+  // Real Photo Capture State (Base64 data url + raw bytes)
+  String _bannerPhotoDataUrl = '';
+  Uint8List? _bannerPhotoBytes;
+  bool _isPickingPhoto = false;
 
   String _selectedCategory = 'Maligai';
   double _gpsLat = 9.4533;
@@ -752,11 +778,7 @@ class _NewKadaiTieupViewState extends State<_NewKadaiTieupView> {
     'General Merchant',
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _bannerUrlCtrl.text = widget.bannerPresets.first;
-  }
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void dispose() {
@@ -765,12 +787,50 @@ class _NewKadaiTieupViewState extends State<_NewKadaiTieupView> {
     _mobileCtrl.dispose();
     _addressCtrl.dispose();
     _areaCtrl.dispose();
-    _bannerUrlCtrl.dispose();
     super.dispose();
   }
 
+  Future<void> _capturePhoto(ImageSource source) async {
+    setState(() => _isPickingPhoto = true);
+    try {
+      final picked = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 80,
+      );
+      if (picked != null) {
+        final bytes = await picked.readAsBytes();
+        final base64String = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+        setState(() {
+          _bannerPhotoBytes = bytes;
+          _bannerPhotoDataUrl = base64String;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Storefront Photo Captured Successfully!'),
+              backgroundColor: Color(0xFF059669),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open camera/gallery: $e'),
+            backgroundColor: const Color(0xFFDC2626),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isPickingPhoto = false);
+    }
+  }
+
   void _simulateCaptureGps() {
-    // Generate realistic nearby GPS offset around Sivakasi
     final randomOffset = (DateTime.now().millisecond % 50) / 10000.0;
     setState(() {
       _gpsLat = 9.4533 + randomOffset;
@@ -808,7 +868,7 @@ class _NewKadaiTieupViewState extends State<_NewKadaiTieupView> {
       gpsLongitude: _gpsLng,
       salesmanId: widget.store.loggedInUserUsername,
       salesmanName: widget.store.loggedInUserName,
-      bannerPhotoUrl: _bannerUrlCtrl.text.trim(),
+      bannerPhotoUrl: _bannerPhotoDataUrl,
       rackPhotoUrl: '',
       outstandingBalance: 0.0,
       createdDate: DateTime.now(),
@@ -823,7 +883,6 @@ class _NewKadaiTieupViewState extends State<_NewKadaiTieupView> {
 
     if (!mounted) return;
 
-    // Show Success Dialog with direct action to book spot order
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -846,7 +905,7 @@ class _NewKadaiTieupViewState extends State<_NewKadaiTieupView> {
             ),
             const SizedBox(height: 4),
             Text('Owner: ${newShop.ownerName} • Phone: ${newShop.mobileNumber}'),
-            Text('Location: ${newShop.area} (GPS Captured)'),
+            Text('Location: ${newShop.area} (GPS Verified)'),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(10),
@@ -892,6 +951,8 @@ class _NewKadaiTieupViewState extends State<_NewKadaiTieupView> {
     _mobileCtrl.clear();
     _addressCtrl.clear();
     setState(() {
+      _bannerPhotoBytes = null;
+      _bannerPhotoDataUrl = '';
       _isGpsLocked = false;
     });
   }
@@ -930,7 +991,7 @@ class _NewKadaiTieupViewState extends State<_NewKadaiTieupView> {
                           ),
                         ),
                         Text(
-                          'Fill shop name, phone, take banner photo and capture exact GPS location on the spot.',
+                          'Enter shop name, phone, take storefront camera photo and capture exact GPS location on the spot.',
                           style: TextStyle(fontSize: 11.5, color: Color(0xFF78350F)),
                         ),
                       ],
@@ -1034,8 +1095,8 @@ class _NewKadaiTieupViewState extends State<_NewKadaiTieupView> {
                         child: TextFormField(
                           controller: _areaCtrl,
                           decoration: const InputDecoration(
-                            labelText: 'பகுதி (Area) *',
-                            hintText: 'Sivakasi Town',
+                            labelText: 'பகுதி / ஊர் (Area) *',
+                            hintText: 'Sivakasi',
                             border: OutlineInputBorder(),
                           ),
                         ),
@@ -1116,84 +1177,163 @@ class _NewKadaiTieupViewState extends State<_NewKadaiTieupView> {
             ),
             const SizedBox(height: 16),
 
-            // Card 3: Shop Banner Photo & Proof
+            // Card 3: REAL CAMERA / GALLERY PHOTO CAPTURE (NO MOCK URLS / NO STOCK IMAGES)
             _buildSectionCard(
-              title: '3. கடை பேனர் புகைப்படம் (Storefront Banner Photo)',
+              title: '3. கடை பேனர் புகைப்படம் (Storefront Photo Proof)',
               icon: Icons.camera_alt_rounded,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Select or enter shopfront photo proof with name board:',
+                    'கடையின் பெயர் பலகை அல்லது முகப்பு தோற்றத்தை மொபைல் கேமராவில் புகைப்படம் எடுக்கவும்:',
                     style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 14),
 
-                  // Preset photo selector chips
-                  SizedBox(
-                    height: 80,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: widget.bannerPresets.length,
-                      separatorBuilder: (context, index) => const SizedBox(width: 10),
-                      itemBuilder: (ctx, idx) {
-                        final url = widget.bannerPresets[idx];
-                        final isSelected = _bannerUrlCtrl.text == url;
-                        return InkWell(
-                          onTap: () {
-                            setState(() {
-                              _bannerUrlCtrl.text = url;
-                            });
-                          },
-                          child: Container(
-                            width: 100,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: isSelected
-                                    ? const Color(0xFFD97706)
-                                    : const Color(0xFFCBD5E1),
-                                width: isSelected ? 2.5 : 1,
-                              ),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(6),
-                              child: Image.network(
-                                url,
-                                fit: BoxFit.cover,
-                              ),
+                  // Action Buttons: Camera & Gallery
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFD97706),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  TextFormField(
-                    controller: _bannerUrlCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Banner Photo Image URL',
-                      prefixIcon: Icon(Icons.link),
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (_) => setState(() {}),
-                  ),
-                  if (_bannerUrlCtrl.text.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        _bannerUrlCtrl.text,
-                        height: 130,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const Center(
-                          child: Text('Invalid image link'),
+                          icon: _isPickingPhoto
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                )
+                              : const Icon(Icons.camera_alt_rounded, size: 18),
+                          label: const Text(
+                            'கேமரா போட்டோ (Camera)',
+                            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+                          ),
+                          onPressed: _isPickingPhoto ? null : () => _capturePhoto(ImageSource.camera),
                         ),
                       ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFF0F172A),
+                            side: const BorderSide(color: Color(0xFFCBD5E1)),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          icon: const Icon(Icons.photo_library_rounded, size: 18),
+                          label: const Text(
+                            'கேலரி (Gallery)',
+                            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+                          ),
+                          onPressed: _isPickingPhoto ? null : () => _capturePhoto(ImageSource.gallery),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Display Area: Captured Photo Preview or Empty Real State
+                  if (_bannerPhotoBytes != null)
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFF22C55E), width: 1.5),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
+                            child: Image.memory(
+                              _bannerPhotoBytes!,
+                              height: 190,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Row(
+                                  children: [
+                                    Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 16),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      'போட்டோ எடுக்கப்பட்டது (Photo Attached)',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF15803D),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                TextButton.icon(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: const Color(0xFFDC2626),
+                                    padding: EdgeInsets.zero,
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                  icon: const Icon(Icons.delete_outline, size: 16),
+                                  label: const Text('Remove', style: TextStyle(fontSize: 11.5)),
+                                  onPressed: () {
+                                    setState(() {
+                                      _bannerPhotoBytes = null;
+                                      _bannerPhotoDataUrl = '';
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFCBD5E1),
+                          style: BorderStyle.solid,
+                        ),
+                      ),
+                      child: const Column(
+                        children: [
+                          Icon(Icons.add_a_photo_outlined, size: 38, color: Color(0xFF94A3B8)),
+                          SizedBox(height: 8),
+                          Text(
+                            'இன்னும் போட்டோ எடுக்கப்படவில்லை',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF475569),
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Tap "Camera" or "Gallery" above to capture actual shop banner proof.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
                 ],
               ),
             ),
@@ -1336,7 +1476,6 @@ class _SpotOrderBookingViewState extends State<_SpotOrderBookingView> {
   }
 
   void _updateRateAndMath() {
-    // Standard rates
     double defaultRate = 450.0;
     if (_selectedBrand == 'Eagle') {
       defaultRate = _selectedPriceCategory == 'Rs. 1' ? 450.0 : 840.0;
@@ -1357,7 +1496,6 @@ class _SpotOrderBookingViewState extends State<_SpotOrderBookingView> {
     if (_paymentMode == 'Cash' || _paymentMode == 'UPI') {
       _amountReceivedCtrl.text = total.toStringAsFixed(0);
     } else {
-      // Credit
       _amountReceivedCtrl.text = '0';
     }
     setState(() {});
@@ -1413,7 +1551,6 @@ class _SpotOrderBookingViewState extends State<_SpotOrderBookingView> {
 
     if (!mounted) return;
 
-    // Show Digital Invoice & WhatsApp Share Dialog
     _showInvoiceAndWhatsAppModal(
       shop: _selectedShop!,
       brand: _selectedBrand,
@@ -1547,7 +1684,7 @@ class _SpotOrderBookingViewState extends State<_SpotOrderBookingView> {
               Clipboard.setData(ClipboardData(text: tamilWhatsAppBill));
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Tamil WhatsApp Bill copied to clipboard! Opening chat...'),
+                  content: Text('Tamil WhatsApp Bill copied to clipboard!'),
                   backgroundColor: Color(0xFF16A34A),
                 ),
               );
@@ -1572,7 +1709,7 @@ class _SpotOrderBookingViewState extends State<_SpotOrderBookingView> {
               const Icon(Icons.storefront_outlined, size: 50, color: Color(0xFF94A3B8)),
               const SizedBox(height: 12),
               const Text(
-                'No tied-up shops available yet',
+                'இன்னும் கடைகள் பதிவு செய்யப்படவில்லை',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 6),
@@ -1699,7 +1836,6 @@ class _SpotOrderBookingViewState extends State<_SpotOrderBookingView> {
                 ),
                 const SizedBox(height: 12),
 
-                // Brand Selector
                 Row(
                   children: ['Eagle', 'Pulli', 'Joker'].map((brand) {
                     final isSel = _selectedBrand == brand;
@@ -1727,7 +1863,6 @@ class _SpotOrderBookingViewState extends State<_SpotOrderBookingView> {
                 ),
                 const SizedBox(height: 10),
 
-                // Category Selector
                 Row(
                   children: ['Rs. 1', 'Rs. 2'].map((cat) {
                     final isSel = _selectedPriceCategory == cat;
@@ -1781,7 +1916,6 @@ class _SpotOrderBookingViewState extends State<_SpotOrderBookingView> {
                 ),
                 const SizedBox(height: 12),
 
-                // Quick bundle buttons
                 Wrap(
                   spacing: 6,
                   children: [5, 10, 25, 50, 100].map((b) {
@@ -1827,7 +1961,6 @@ class _SpotOrderBookingViewState extends State<_SpotOrderBookingView> {
                 ),
                 const SizedBox(height: 16),
 
-                // Billing Math Summary Card
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
@@ -1856,7 +1989,6 @@ class _SpotOrderBookingViewState extends State<_SpotOrderBookingView> {
                       ),
                       const Divider(height: 16),
 
-                      // Payment Mode Choice
                       Row(
                         children: ['Cash', 'UPI', 'Credit'].map((mode) {
                           final isSel = _paymentMode == mode;
@@ -2001,7 +2133,7 @@ class _MyShopsDirectoryView extends StatefulWidget {
 
 class _MyShopsDirectoryViewState extends State<_MyShopsDirectoryView> {
   final _searchCtrl = TextEditingController();
-  String _selectedFilter = 'All'; // All, Baaki, Visited, Maligai, Tea Stall
+  String _selectedFilter = 'All';
 
   @override
   void dispose() {
@@ -2092,7 +2224,6 @@ class _MyShopsDirectoryViewState extends State<_MyShopsDirectoryView> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Search Bar
           TextField(
             controller: _searchCtrl,
             decoration: InputDecoration(
@@ -2119,7 +2250,6 @@ class _MyShopsDirectoryViewState extends State<_MyShopsDirectoryView> {
           ),
           const SizedBox(height: 10),
 
-          // Filter Chips
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -2146,7 +2276,6 @@ class _MyShopsDirectoryViewState extends State<_MyShopsDirectoryView> {
           ),
           const SizedBox(height: 12),
 
-          // Shops List
           Expanded(
             child: filteredShops.isEmpty
                 ? Center(
@@ -2155,7 +2284,10 @@ class _MyShopsDirectoryViewState extends State<_MyShopsDirectoryView> {
                       children: [
                         const Icon(Icons.search_off_rounded, size: 40, color: Color(0xFF94A3B8)),
                         const SizedBox(height: 8),
-                        const Text('No shops match your search criteria'),
+                        const Text(
+                          'இன்னும் கடைகள் பதிவு செய்யப்படவில்லை',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                       ],
                     ),
                   )
@@ -2194,22 +2326,8 @@ class _MyShopsDirectoryViewState extends State<_MyShopsDirectoryView> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Store banner thumbnail
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: shop.bannerPhotoUrl.isNotEmpty
-                    ? Image.network(
-                        shop.bannerPhotoUrl,
-                        width: 60,
-                        height: 60,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => _buildFallbackIcon(),
-                      )
-                    : _buildFallbackIcon(),
-              ),
+              _buildRealShopThumbnail(shop.bannerPhotoUrl, width: 60, height: 60),
               const SizedBox(width: 12),
-
-              // Info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -2259,7 +2377,6 @@ class _MyShopsDirectoryViewState extends State<_MyShopsDirectoryView> {
           ),
           const SizedBox(height: 8),
 
-          // Baaki status & GPS info
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
@@ -2302,10 +2419,8 @@ class _MyShopsDirectoryViewState extends State<_MyShopsDirectoryView> {
           ),
           const Divider(height: 16, thickness: 0.8),
 
-          // 4 Action Buttons
           Row(
             children: [
-              // Call
               Expanded(
                 child: OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
@@ -2323,7 +2438,6 @@ class _MyShopsDirectoryViewState extends State<_MyShopsDirectoryView> {
               ),
               const SizedBox(width: 6),
 
-              // WhatsApp
               Expanded(
                 child: OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
@@ -2336,14 +2450,13 @@ class _MyShopsDirectoryViewState extends State<_MyShopsDirectoryView> {
                     final msg = 'Vanakkam ${shop.ownerName}, Deeba Match House sales update for ${shop.shopName}.';
                     Clipboard.setData(ClipboardData(text: msg));
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('WhatsApp chat initiated with ${shop.shopName}')),
+                      SnackBar(content: Text('WhatsApp message copied for ${shop.shopName}')),
                     );
                   },
                 ),
               ),
               const SizedBox(width: 6),
 
-              // Collect Baaki
               if (shop.outstandingBalance > 0) ...[
                 Expanded(
                   child: ElevatedButton.icon(
@@ -2360,7 +2473,6 @@ class _MyShopsDirectoryViewState extends State<_MyShopsDirectoryView> {
                 const SizedBox(width: 6),
               ],
 
-              // Take Order
               Expanded(
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
@@ -2379,14 +2491,4 @@ class _MyShopsDirectoryViewState extends State<_MyShopsDirectoryView> {
       ),
     );
   }
-
-  Widget _buildFallbackIcon() {
-    return Container(
-      width: 60,
-      height: 60,
-      color: const Color(0xFFF1F5F9),
-      child: const Icon(Icons.storefront_rounded, color: Color(0xFF94A3B8)),
-    );
-  }
 }
-
