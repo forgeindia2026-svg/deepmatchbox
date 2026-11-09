@@ -11,7 +11,5 @@ build/
 .dart_tool/
 .idea/
 web_deploy/
-web_customer/
 *.apk
 *.jar
-
